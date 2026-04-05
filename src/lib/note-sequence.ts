@@ -24,12 +24,6 @@ interface OsmdVoiceEntry {
 
 interface OsmdStaffEntry {
   VoiceEntries: OsmdVoiceEntry[]
-  ParentStaff: {
-    Id: number
-    ParentInstrument: {
-      Staves: { Id: number }[]
-    }
-  }
 }
 
 interface OsmdVerticalContainer {
@@ -46,13 +40,6 @@ interface OsmdMeasure {
 interface OsmdSheet {
   SourceMeasures: OsmdMeasure[]
   DefaultStartTempoInBpm: number
-}
-
-function resolveHand(staffEntry: OsmdStaffEntry): 'left' | 'right' {
-  const staff = staffEntry.ParentStaff
-  const staves = staff.ParentInstrument.Staves
-  if (staves.length <= 1) return 'right'
-  return staff.Id === staves[0].Id ? 'right' : 'left'
 }
 
 function fractionToMs(realValue: number, bpm: number): number {
@@ -85,8 +72,6 @@ export function extractNoteSequence(sheet: OsmdSheet): SongNote[] {
       for (const staffEntry of container.StaffEntries) {
         if (!staffEntry) continue
 
-        const hand = resolveHand(staffEntry)
-
         for (const voiceEntry of staffEntry.VoiceEntries) {
           if (voiceEntry.IsGrace) continue
 
@@ -104,7 +89,6 @@ export function extractNoteSequence(sheet: OsmdSheet): SongNote[] {
               duration: Math.round(
                 fractionToMs(note.Length.RealValue, currentBpm),
               ),
-              hand,
             })
           }
         }

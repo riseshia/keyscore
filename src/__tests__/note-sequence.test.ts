@@ -34,14 +34,9 @@ function createVoiceEntry(
 
 function createStaffEntry(
   voiceEntries: ReturnType<typeof createVoiceEntry>[],
-  staffIndex: number,
 ) {
   return {
     VoiceEntries: voiceEntries,
-    ParentStaff: {
-      Id: staffIndex,
-      ParentInstrument: { Staves: [{ Id: 0 }, { Id: 1 }] },
-    },
   }
 }
 
@@ -99,14 +94,11 @@ describe('extractNoteSequence', () => {
           createVerticalContainer(
             { numerator: 0, denominator: 1 },
             [
-              createStaffEntry(
-                [
-                  createVoiceEntry([
-                    createNote(60, { numerator: 1, denominator: 4 }),
-                  ]),
-                ],
-                0,
-              ),
+              createStaffEntry([
+                createVoiceEntry([
+                  createNote(60, { numerator: 1, denominator: 4 }),
+                ]),
+              ]),
             ],
             { numerator: 0, denominator: 1 },
           ),
@@ -120,7 +112,6 @@ describe('extractNoteSequence', () => {
     expect(notes[0].pitch).toBe(60)
     expect(notes[0].startTime).toBe(0)
     expect(notes[0].duration).toBe(500) // 1/4 note at 120 BPM = 500ms
-    expect(notes[0].hand).toBe('right')
   })
 
   it('쉼표는 제외한다', () => {
@@ -131,18 +122,15 @@ describe('extractNoteSequence', () => {
           createVerticalContainer(
             { numerator: 0, denominator: 1 },
             [
-              createStaffEntry(
-                [
-                  createVoiceEntry([
-                    createNote(
-                      0,
-                      { numerator: 1, denominator: 4 },
-                      { isRest: true },
-                    ),
-                  ]),
-                ],
-                0,
-              ),
+              createStaffEntry([
+                createVoiceEntry([
+                  createNote(
+                    0,
+                    { numerator: 1, denominator: 4 },
+                    { isRest: true },
+                  ),
+                ]),
+              ]),
             ],
             { numerator: 0, denominator: 1 },
           ),
@@ -155,36 +143,6 @@ describe('extractNoteSequence', () => {
     expect(notes).toHaveLength(0)
   })
 
-  it('왼손 스태프의 음표는 hand=left로 추출한다', () => {
-    const sheet = createMockSheet([
-      createMeasure(
-        { numerator: 0, denominator: 1 },
-        [
-          createVerticalContainer(
-            { numerator: 0, denominator: 1 },
-            [
-              null,
-              createStaffEntry(
-                [
-                  createVoiceEntry([
-                    createNote(48, { numerator: 1, denominator: 4 }),
-                  ]),
-                ],
-                1,
-              ),
-            ],
-            { numerator: 0, denominator: 1 },
-          ),
-        ],
-        120,
-      ),
-    ])
-
-    const notes = extractNoteSequence(sheet)
-    expect(notes).toHaveLength(1)
-    expect(notes[0].hand).toBe('left')
-  })
-
   it('BPM에 따라 타이밍을 계산한다', () => {
     const sheet = createMockSheet([
       createMeasure(
@@ -193,28 +151,22 @@ describe('extractNoteSequence', () => {
           createVerticalContainer(
             { numerator: 0, denominator: 1 },
             [
-              createStaffEntry(
-                [
-                  createVoiceEntry([
-                    createNote(60, { numerator: 1, denominator: 4 }),
-                  ]),
-                ],
-                0,
-              ),
+              createStaffEntry([
+                createVoiceEntry([
+                  createNote(60, { numerator: 1, denominator: 4 }),
+                ]),
+              ]),
             ],
             { numerator: 0, denominator: 1 },
           ),
           createVerticalContainer(
             { numerator: 1, denominator: 4 },
             [
-              createStaffEntry(
-                [
-                  createVoiceEntry([
-                    createNote(62, { numerator: 1, denominator: 4 }),
-                  ]),
-                ],
-                0,
-              ),
+              createStaffEntry([
+                createVoiceEntry([
+                  createNote(62, { numerator: 1, denominator: 4 }),
+                ]),
+              ]),
             ],
             { numerator: 0, denominator: 1 },
           ),
@@ -239,18 +191,15 @@ describe('extractNoteSequence', () => {
           createVerticalContainer(
             { numerator: 0, denominator: 1 },
             [
-              createStaffEntry(
-                [
-                  createVoiceEntry(
-                    [createNote(60, { numerator: 1, denominator: 16 })],
-                    true,
-                  ),
-                  createVoiceEntry([
-                    createNote(62, { numerator: 1, denominator: 4 }),
-                  ]),
-                ],
-                0,
-              ),
+              createStaffEntry([
+                createVoiceEntry(
+                  [createNote(60, { numerator: 1, denominator: 16 })],
+                  true,
+                ),
+                createVoiceEntry([
+                  createNote(62, { numerator: 1, denominator: 4 }),
+                ]),
+              ]),
             ],
             { numerator: 0, denominator: 1 },
           ),
@@ -272,28 +221,22 @@ describe('extractNoteSequence', () => {
           createVerticalContainer(
             { numerator: 1, denominator: 4 },
             [
-              createStaffEntry(
-                [
-                  createVoiceEntry([
-                    createNote(62, { numerator: 1, denominator: 4 }),
-                  ]),
-                ],
-                0,
-              ),
+              createStaffEntry([
+                createVoiceEntry([
+                  createNote(62, { numerator: 1, denominator: 4 }),
+                ]),
+              ]),
             ],
             { numerator: 0, denominator: 1 },
           ),
           createVerticalContainer(
             { numerator: 0, denominator: 1 },
             [
-              createStaffEntry(
-                [
-                  createVoiceEntry([
-                    createNote(60, { numerator: 1, denominator: 4 }),
-                  ]),
-                ],
-                0,
-              ),
+              createStaffEntry([
+                createVoiceEntry([
+                  createNote(60, { numerator: 1, denominator: 4 }),
+                ]),
+              ]),
             ],
             { numerator: 0, denominator: 1 },
           ),
