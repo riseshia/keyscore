@@ -81,7 +81,11 @@ export function extractNoteSequence(sheet: OsmdSheet): SongNote[] {
             // 타이 음표: 시작 음표가 아닌 경우 스킵 (중복 방지)
             if (note.NoteTie && note.NoteTie.StartNote !== note) continue
 
-            const pitch = note.Pitch ? note.Pitch.getHalfTone() : note.halfTone
+            // OSMD의 getHalfTone()은 표준 MIDI보다 1옥타브(12) 낮은 값을 반환
+            const rawPitch = note.Pitch
+              ? note.Pitch.getHalfTone()
+              : note.halfTone
+            const pitch = rawPitch + 12
 
             notes.push({
               pitch,

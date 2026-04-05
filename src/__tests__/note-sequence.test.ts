@@ -109,7 +109,7 @@ describe('extractNoteSequence', () => {
 
     const notes = extractNoteSequence(sheet)
     expect(notes).toHaveLength(1)
-    expect(notes[0].pitch).toBe(60)
+    expect(notes[0].pitch).toBe(72) // OSMD raw 60 + 12 offset = MIDI 72
     expect(notes[0].startTime).toBe(0)
     expect(notes[0].duration).toBe(500) // 1/4 note at 120 BPM = 500ms
   })
@@ -210,7 +210,7 @@ describe('extractNoteSequence', () => {
 
     const notes = extractNoteSequence(sheet)
     expect(notes).toHaveLength(1)
-    expect(notes[0].pitch).toBe(62)
+    expect(notes[0].pitch).toBe(74) // OSMD raw 62 + 12
   })
 
   it('startTime 순으로 정렬된다', () => {
@@ -247,7 +247,7 @@ describe('extractNoteSequence', () => {
 
     const notes = extractNoteSequence(sheet)
     expect(notes).toHaveLength(2)
-    expect(notes[0].pitch).toBe(60)
-    expect(notes[1].pitch).toBe(62)
+    expect(notes[0].pitch).toBe(72) // OSMD raw 60 + 12
+    expect(notes[1].pitch).toBe(74) // OSMD raw 62 + 12
   })
 })
