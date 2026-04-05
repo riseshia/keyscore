@@ -14,6 +14,7 @@ describe('Grader', () => {
     expect(result).not.toBeNull()
     expect(result!.grade).toBe('perfect')
     expect(result!.songNote.pitch).toBe(60)
+    expect(result!.noteIndex).toBe(0)
   })
 
   it('50ms 이내면 Perfect', () => {
@@ -73,9 +74,11 @@ describe('Grader', () => {
 
     const first = grader.processNoteOn(60, 1000)
     expect(first!.songNote.startTime).toBe(1000)
+    expect(first!.noteIndex).toBe(0)
 
     const second = grader.processNoteOn(60, 2000)
     expect(second!.songNote.startTime).toBe(2000)
+    expect(second!.noteIndex).toBe(1)
   })
 
   it('flush로 지나간 매칭 안 된 음표를 Miss로 확정한다', () => {
@@ -86,6 +89,7 @@ describe('Grader', () => {
     expect(misses).toHaveLength(1)
     expect(misses[0].grade).toBe('miss')
     expect(misses[0].songNote.pitch).toBe(60)
+    expect(misses[0].noteIndex).toBe(0)
   })
 
   it('flush로 아직 윈도우 안인 음표는 Miss로 확정하지 않는다', () => {
