@@ -40,3 +40,39 @@
   color: #555;
   font-family: monospace;
 }
+
+.sessionInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.sessionState {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  font-family: monospace;
+}
+
+.statPerfect {
+  color: #00aa00;
+}
+
+.statGood {
+  color: #aa8800;
+}
+
+.statMiss {
+  color: #cc0000;
+}
+
+.statError {
+  color: #888;
+}

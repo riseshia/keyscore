@@ -1,9 +1,12 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
+import { extractNoteSequence } from '../lib/note-sequence'
+import type { SongNote } from '../lib/types'
 import styles from './SheetMusic.module.css'
 
 interface SheetMusicProps {
   musicXml: string
+  onNotesReady?: (notes: SongNote[]) => void
 }
 
 export interface SheetMusicHandle {
@@ -13,7 +16,7 @@ export interface SheetMusicHandle {
 }
 
 export default forwardRef<SheetMusicHandle, SheetMusicProps>(
-  function SheetMusic({ musicXml }, ref) {
+  function SheetMusic({ musicXml, onNotesReady }, ref) {
     const containerRef = useRef<HTMLDivElement>(null)
     const osmdRef = useRef<OpenSheetMusicDisplay | null>(null)
 
@@ -49,6 +52,10 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
       osmd.load(musicXml).then(() => {
         osmd.render()
         osmd.cursor.show()
+        if (onNotesReady && osmd.Sheet) {
+          const notes = extractNoteSequence(osmd.Sheet)
+          onNotesReady(notes)
+        }
       })
 
       return () => {
