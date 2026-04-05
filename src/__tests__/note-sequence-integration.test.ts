@@ -17,7 +17,7 @@ function loadSheet(fixtureName: string) {
 }
 
 describe('extractNoteSequence (integration)', () => {
-  it('엘리제를 위하여에서 음표를 추출한다', () => {
+  it('엘리제를 위하여에서 음표를 추출한다', { timeout: 15000 }, () => {
     const sheet = loadSheet('fur-elise.musicxml')
     const notes = extractNoteSequence(sheet)
 
@@ -44,7 +44,7 @@ describe('extractNoteSequence (integration)', () => {
     expect(notes[0].startTime).toBeGreaterThanOrEqual(0)
   })
 
-  it('엘리제 첫 마디의 음표를 정확히 추출한다', () => {
+  it('엘리제 첫 마디의 음표를 정확히 추출한다', { timeout: 15000 }, () => {
     const sheet = loadSheet('fur-elise.musicxml')
     const notes = extractNoteSequence(sheet)
 

@@ -7,6 +7,7 @@ export type Grade = 'perfect' | 'good' | 'miss' | 'error'
 
 export interface GradeResult {
   songNote: SongNote
+  noteIndex: number // songNotes 배열 내 인덱스
   grade: Grade
   timeDiff: number // ms (양수 = 늦음, 음수 = 빠름)
 }
@@ -54,7 +55,7 @@ export class Grader {
     const timeDiff = timestamp - songNote.startTime
     const grade = bestDiff <= PERFECT_RANGE ? 'perfect' : 'good'
 
-    return { songNote, grade, timeDiff }
+    return { songNote, noteIndex: bestIndex, grade, timeDiff }
   }
 
   /**
@@ -73,6 +74,7 @@ export class Grader {
         this.matched.add(i)
         misses.push({
           songNote,
+          noteIndex: i,
           grade: 'miss',
           timeDiff: elapsed,
         })
