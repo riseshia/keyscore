@@ -1,6 +1,11 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
-import { extractNoteSequence } from '../lib/note-sequence'
+import { extractNoteSequenceWithRefs } from '../lib/note-sequence'
+import {
+  colorizeNote,
+  resetAllNoteColors,
+} from '../lib/score-colorizer'
+import type { Grade } from '../lib/grader'
 import type { SongNote } from '../lib/types'
 import styles from './SheetMusic.module.css'
 
@@ -13,12 +18,16 @@ export interface SheetMusicHandle {
   cursorNext: () => void
   cursorPrevious: () => void
   cursorReset: () => void
+  colorNote: (noteIndex: number, grade: Grade) => void
+  resetColors: () => void
 }
 
 export default forwardRef<SheetMusicHandle, SheetMusicProps>(
   function SheetMusic({ musicXml, onNotesReady }, ref) {
     const containerRef = useRef<HTMLDivElement>(null)
     const osmdRef = useRef<OpenSheetMusicDisplay | null>(null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const osmdNotesRef = useRef<any[]>([])
 
     useImperativeHandle(ref, () => ({
       cursorNext: () => {
@@ -37,6 +46,17 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
         cursor.reset()
         cursor.show()
       },
+      colorNote: (noteIndex: number, grade: Grade) => {
+        const osmd = osmdRef.current
+        const osmdNote = osmdNotesRef.current[noteIndex]
+        if (!osmd || !osmdNote) return
+        colorizeNote(osmd, osmdNote, grade)
+      },
+      resetColors: () => {
+        const osmd = osmdRef.current
+        if (!osmd) return
+        resetAllNoteColors(osmd, osmdNotesRef.current)
+      },
     }))
 
     useEffect(() => {
@@ -52,15 +72,19 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
       osmd.load(musicXml).then(() => {
         osmd.render()
         osmd.cursor.show()
-        if (onNotesReady && osmd.Sheet) {
-          const notes = extractNoteSequence(osmd.Sheet)
-          onNotesReady(notes)
+        if (osmd.Sheet) {
+          const result = extractNoteSequenceWithRefs(osmd.Sheet)
+          osmdNotesRef.current = result.osmdNotes
+          if (onNotesReady) {
+            onNotesReady(result.notes)
+          }
         }
       })
 
       return () => {
         osmd.clear()
         osmdRef.current = null
+        osmdNotesRef.current = []
       }
     }, [musicXml])
 

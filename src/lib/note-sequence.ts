@@ -12,9 +12,20 @@ function fractionToMs(realValue: number, bpm: number): number {
   return (beats / bpm) * 60 * 1000
 }
 
+export interface NoteSequenceResult {
+  notes: SongNote[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  osmdNotes: any[] // OSMD Note 객체 배열 (notes와 같은 인덱스)
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function extractNoteSequence(sheet: any): SongNote[] {
-  const notes: SongNote[] = []
+  return extractNoteSequenceWithRefs(sheet).notes
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function extractNoteSequenceWithRefs(sheet: any): NoteSequenceResult {
+  const entries: { note: SongNote; osmdNote: unknown }[] = []
   let currentBpm =
     sheet.DefaultStartTempoInBpm > 0 ? sheet.DefaultStartTempoInBpm : 120
 
@@ -51,12 +62,15 @@ export function extractNoteSequence(sheet: any): SongNote[] {
               : note.halfTone
             const pitch = rawPitch + 12
 
-            notes.push({
-              pitch,
-              startTime: Math.round(startTime),
-              duration: Math.round(
-                fractionToMs(note.Length.RealValue, currentBpm),
-              ),
+            entries.push({
+              note: {
+                pitch,
+                startTime: Math.round(startTime),
+                duration: Math.round(
+                  fractionToMs(note.Length.RealValue, currentBpm),
+                ),
+              },
+              osmdNote: note,
             })
           }
         }
@@ -64,6 +78,9 @@ export function extractNoteSequence(sheet: any): SongNote[] {
     }
   }
 
-  notes.sort((a, b) => a.startTime - b.startTime)
-  return notes
+  entries.sort((a, b) => a.note.startTime - b.note.startTime)
+  return {
+    notes: entries.map((e) => e.note),
+    osmdNotes: entries.map((e) => e.osmdNote),
+  }
 }
