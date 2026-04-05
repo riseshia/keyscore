@@ -57,7 +57,7 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
         colorTrackerRef.current.resetAll(osmd, osmdNotesRef.current)
       },
       scrollToTop: () => {
-        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        window.scrollTo({ top: 0, behavior: 'smooth' })
       },
     }))
 

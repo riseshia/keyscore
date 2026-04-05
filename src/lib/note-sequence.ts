@@ -21,9 +21,19 @@ export function extractNoteSequence(sheet: any): SongNote[] {
 /**
  * MusicPartManagerIterator를 사용하여 재생 순서(반복 포함)로 음표를 추출한다.
  * CurrentEnrolledTimestamp로 누적 재생 시간을 계산하므로 도돌이표를 올바르게 처리한다.
+ *
+ * MusicPartManager가 없는 경우(테스트 등) SourceMeasures 기반 fallback을 사용한다.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function extractNoteSequenceWithRefs(sheet: any): NoteSequenceResult {
+  if (sheet.MusicPartManager) {
+    return extractViaIterator(sheet)
+  }
+  return extractViaSourceMeasures(sheet)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractViaIterator(sheet: any): NoteSequenceResult {
   const entries: { note: SongNote; osmdNote: unknown }[] = []
   const iterator = sheet.MusicPartManager.getIterator()
   const seenNotes = new Set<unknown>() // 같은 beat 위치의 중복 처리 방지
@@ -64,6 +74,56 @@ export function extractNoteSequenceWithRefs(sheet: any): NoteSequenceResult {
     }
 
     iterator.moveToNext()
+  }
+
+  entries.sort((a, b) => a.note.startTime - b.note.startTime)
+  return {
+    notes: entries.map((e) => e.note),
+    osmdNotes: entries.map((e) => e.osmdNote),
+  }
+}
+
+/**
+ * SourceMeasures 기반 fallback (반복 구간 미지원).
+ * MusicPartManager가 없는 환경(MusicSheetReader 직접 사용 등)에서 사용.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractViaSourceMeasures(sheet: any): NoteSequenceResult {
+  const entries: { note: SongNote; osmdNote: unknown }[] = []
+  const defaultBpm = sheet.DefaultStartTempoInBpm > 0 ? sheet.DefaultStartTempoInBpm : 120
+
+  for (const measure of sheet.SourceMeasures) {
+    for (const staffEntry of measure.VerticalSourceStaffEntryContainers) {
+      for (const entry of staffEntry.StaffEntries) {
+        if (!entry) continue
+        for (const voiceEntry of entry.VoiceEntries) {
+          if (voiceEntry.IsGrace) continue
+          for (const note of voiceEntry.Notes) {
+            if (note.isRest()) continue
+            if (note.NoteTie && note.NoteTie.StartNote !== note) continue
+
+            const rawPitch = note.Pitch
+              ? note.Pitch.getHalfTone()
+              : note.halfTone
+            const pitch = rawPitch + 12
+
+            const timestamp = note.getAbsoluteTimestamp()
+            const startTime = fractionToMs(timestamp.RealValue, defaultBpm)
+
+            entries.push({
+              note: {
+                pitch,
+                startTime: Math.round(startTime),
+                duration: Math.round(
+                  fractionToMs(note.Length.RealValue, defaultBpm),
+                ),
+              },
+              osmdNote: note,
+            })
+          }
+        }
+      }
+    }
   }
 
   entries.sort((a, b) => a.note.startTime - b.note.startTime)

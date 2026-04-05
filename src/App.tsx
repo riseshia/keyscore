@@ -153,6 +153,25 @@ function App() {
             musicXml={musicXml}
             onNotesReady={setSongNotes}
           />
+          {state === 'finished' && sessionResult && (
+            <div className={styles.bottomControls}>
+              <span className={styles.bottomAccuracy}>
+                정확도: {Math.round(sessionResult.stats.accuracy * 100)}%
+              </span>
+              <button
+                onClick={handleRestart}
+                className={styles.controlButton}
+              >
+                다시 연습
+              </button>
+              <button
+                onClick={() => sheetMusicRef.current?.scrollToTop()}
+                className={styles.controlButton}
+              >
+                맨 위로
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
