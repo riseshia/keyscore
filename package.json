@@ -21,6 +21,11 @@
   "engines": {
     "node": ">=24"
   },
+  "overrides": {
+    "opensheetmusicdisplay": {
+      "gl": "npm:@aspect-build/empty@0.0.1"
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@testing-library/jest-dom": "^6.9.1",
