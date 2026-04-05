@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Grader, type GradeResult } from '../lib/grader'
+import { Grader } from '../lib/grader'
 import type { SongNote } from '../lib/types'
 
 function note(pitch: number, startTime: number, duration = 500): SongNote {

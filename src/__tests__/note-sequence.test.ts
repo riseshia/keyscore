@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { extractNoteSequence } from '../lib/note-sequence'
-import type { SongNote } from '../lib/types'
 
 // OSMD 내부 데이터를 모킹하기 위한 헬퍼
 function createFraction(numerator: number, denominator: number) {
@@ -14,14 +13,17 @@ function createFraction(numerator: number, denominator: number) {
 function createNote(
   halfTone: number,
   length: { numerator: number; denominator: number },
-  opts: { isRest?: boolean; noteTie?: unknown; isGrace?: boolean } = {},
+  opts: {
+    isRest?: boolean
+    noteTie?: { StartNote: unknown } | null
+  } = {},
 ) {
   return {
-    halfTone, // Pitch.getHalfTone() 우선 사용, fallback용
+    halfTone,
     Pitch: opts.isRest ? null : { getHalfTone: () => halfTone },
     Length: createFraction(length.numerator, length.denominator),
     isRest: () => opts.isRest ?? false,
-    NoteTie: opts.noteTie ?? null,
+    NoteTie: opts.noteTie ?? (null as { StartNote: unknown } | null),
   }
 }
 
