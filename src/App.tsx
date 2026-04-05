@@ -6,6 +6,7 @@ import { MidiDeviceSelector } from './components/MidiDeviceSelector'
 import { MockMidiKeyboard } from './components/MockMidiKeyboard'
 import { useMidi } from './hooks/useMidi'
 import { useSession } from './hooks/useSession'
+import type { GradeResult } from './lib/grader'
 import type { MidiNoteEvent, SongNote } from './lib/types'
 import styles from './App.module.css'
 
@@ -19,8 +20,21 @@ function App() {
     sheetMusicRef.current?.cursorNext()
   }, [])
 
-  const { state, stats, handleNoteEvent: sessionHandleNote, stopSession } =
-    useSession({ songNotes, onCursorAdvance: handleCursorAdvance })
+  const handleGradeResult = useCallback((result: GradeResult) => {
+    sheetMusicRef.current?.colorNote(result.noteIndex, result.grade)
+  }, [])
+
+  const {
+    state,
+    stats,
+    sessionResult,
+    handleNoteEvent: sessionHandleNote,
+    stopSession,
+  } = useSession({
+    songNotes,
+    onCursorAdvance: handleCursorAdvance,
+    onGradeResult: handleGradeResult,
+  })
 
   const handleMidiEvent = useCallback(
     (event: MidiNoteEvent) => {
@@ -47,6 +61,12 @@ function App() {
     setSongNotes([])
     setLastNote(null)
   }, [])
+
+  const handleRestart = useCallback(() => {
+    sheetMusicRef.current?.resetColors()
+    sheetMusicRef.current?.cursorReset()
+    stopSession()
+  }, [stopSession])
 
   return (
     <div className={styles.app}>
@@ -109,6 +129,19 @@ function App() {
                 <span className={styles.statMiss}>Miss: {stats.miss}</span>
                 <span className={styles.statError}>Error: {stats.error}</span>
               </div>
+              {state === 'finished' && sessionResult && (
+                <div className={styles.resultSummary}>
+                  <span>
+                    정확도: {Math.round(sessionResult.stats.accuracy * 100)}%
+                  </span>
+                  <button
+                    onClick={handleRestart}
+                    className={styles.controlButton}
+                  >
+                    다시 연습
+                  </button>
+                </div>
+              )}
             </div>
           )}
           <SheetMusic

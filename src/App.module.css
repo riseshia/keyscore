@@ -76,3 +76,11 @@
 .statError {
   color: #888;
 }
+
+.resultSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
