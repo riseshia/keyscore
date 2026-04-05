@@ -32,17 +32,17 @@
 ### M0: 프로젝트 셋업
 - [x] GitHub 리포 생성
 - [x] CLAUDE.md, DESIGN.md, TODO.md
-- [ ] Vite + React + TypeScript 초기화
-- [ ] ESLint + Prettier 설정
-- [ ] Vitest 설정
-- [ ] CI (GitHub Actions)
-- [ ] 테스트용 MusicXML 파일 추가 (엘리제를 위하여)
-- [ ] Playwright + MIDI 에뮬레이션 인수 테스트 셋업
+- [x] Vite + React + TypeScript 초기화
+- [x] ESLint + Prettier 설정
+- [x] Vitest 설정
+- [x] 테스트용 MusicXML 파일 추가 (엘리제를 위하여)
+- [x] agent-browser 동작 확인 세팅
 
 ### M1: MusicXML 로드 + OSMD 악보 렌더링
-- [ ] MusicXML 파일 로드 (파일 선택)
-- [ ] OSMD 악보 렌더링
-- [ ] 현재 위치 커서 표시 (재생 시 악보 위를 따라감)
+- [ ] OSMD 설치 + 기본 렌더링 — OSMD 패키지 추가, 하드코딩된 fixture로 악보 표시 확인
+- [ ] MusicXML 파일 로드 UI — File System Access API로 로컬 폴더 지정, 파일 목록 표시, 선택 시 OSMD에 전달
+- [ ] 커서 표시 — OSMD cursor API로 현재 위치 하이라이트
+- [ ] 커서 이동 — next()/previous() 호출로 마디 단위 이동 확인 (임시 버튼)
 
 ### M2: MIDI 입력 + 실시간 판정
 - [ ] Web MIDI API 연결
