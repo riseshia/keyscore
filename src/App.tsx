@@ -65,6 +65,7 @@ function App() {
   const handleRestart = useCallback(() => {
     sheetMusicRef.current?.resetColors()
     sheetMusicRef.current?.cursorReset()
+    sheetMusicRef.current?.scrollToTop()
     stopSession()
   }, [stopSession])
 
@@ -91,7 +92,10 @@ function App() {
         <>
           <div className={styles.controls}>
             <button
-              onClick={() => sheetMusicRef.current?.cursorReset()}
+              onClick={() => {
+                sheetMusicRef.current?.cursorReset()
+                sheetMusicRef.current?.scrollToTop()
+              }}
               className={styles.controlButton}
             >
               처음
