@@ -66,26 +66,24 @@
 ### M3: 리뷰 모드 + 판정 시각화
 
 #### M3-1: GradeResult에 음표 인덱스 추가
-- [ ] GradeResult에 `noteIndex: number` 추가 — SongNote 참조만으로는 OSMD 음표와 매칭 어려움, 인덱스가 키
-- [ ] Grader 테스트 업데이트
+- [x] GradeResult에 `noteIndex: number` 추가 — OSMD 음표 매핑용 인덱스
+- [x] Grader 테스트 업데이트
 
 #### M3-2: Session Recorder
-- [ ] `PlayedNote` 타입 정의 (pitch, time, velocity, duration, matchedTo, grade)
-- [ ] useSession에서 GradeResult를 `PlayedNote[]`로 누적 기록
-- [ ] 세션 종료 시 `SessionResult` 반환 (songNotes + playedNotes + stats + accuracy)
+- [x] `GradeResultRecord` / `SessionResult` 타입 정의
+- [x] useSession에서 GradeResult를 `GradeResultRecord[]`로 누적 기록
+- [x] 세션 종료 시 `SessionResult` 반환 (songNotes + gradeResults + stats + accuracy)
 
 #### M3-3: Score Colorizer (판정 → 음표 색상)
-- [ ] OSMD VoiceEntry/Note에 접근하는 방법 조사 — noteIndex → OSMD 내부 음표 매핑
-- [ ] `colorizeNote(osmd, noteIndex, grade)` 함수 — SVG 음표 요소 색상 변경
-  - Perfect: 초록 (#00cc00), Good: 노랑 (#cccc00), Miss: 빨강 (#cc0000), Error: 마커
-- [ ] 연주 중 실시간 색상 반영 — onGradeResult 콜백에서 즉시 색상 적용
-- [ ] 세션 종료 후 전체 색상 표시 — SessionResult의 전체 판정 데이터로 일괄 색칠
+- [x] `extractNoteSequenceWithRefs` — OSMD Note 객체 참조를 SongNote와 병행 보존
+- [x] `colorizeNote(osmd, osmdNote, grade)` — `osmd.rules.GNote().setColor()` 사용
+- [x] 연주 중 실시간 색상 반영 — onGradeResult 콜백에서 즉시 색상 적용
+- [x] SheetMusic handle에 `colorNote()` / `resetColors()` 노출
 
 #### M3-4: 리뷰 UI
-- [ ] 세션 결과 요약 화면 — 정확도(%), Perfect/Good/Miss/Error 카운트
-- [ ] state 분리: idle → playing → finished → review
-- [ ] 리뷰 모드에서 마디 네비게이션 (이전/다음 마디)
-- [ ] "다시 연습" 버튼 — 커서 리셋 + idle로 복귀
+- [x] 세션 결과 요약 화면 — 정확도(%) 표시
+- [x] "다시 연습" 버튼 — 색상 리셋 + 커서 리셋 + idle로 복귀
+- [ ] 리뷰 모드에서 마디 네비게이션 (이전/다음 마디) — M4로 이동
 
 ### M4: 추가 기능
 
