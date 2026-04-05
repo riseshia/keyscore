@@ -15,9 +15,10 @@ export interface SessionStats {
 interface UseSessionOptions {
   songNotes: SongNote[]
   onGradeResult?: (result: GradeResult) => void
+  onCursorAdvance?: () => void
 }
 
-export function useSession({ songNotes, onGradeResult }: UseSessionOptions) {
+export function useSession({ songNotes, onGradeResult, onCursorAdvance }: UseSessionOptions) {
   const [state, setState] = useState<SessionState>('idle')
   const [stats, setStats] = useState<SessionStats>({
     perfect: 0,
@@ -33,9 +34,12 @@ export function useSession({ songNotes, onGradeResult }: UseSessionOptions) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const statsRef = useRef(stats)
   const onGradeResultRef = useRef(onGradeResult)
+  const onCursorAdvanceRef = useRef(onCursorAdvance)
   const songNotesRef = useRef(songNotes)
+  const cursorIndexRef = useRef(0)
 
   onGradeResultRef.current = onGradeResult
+  onCursorAdvanceRef.current = onCursorAdvance
   songNotesRef.current = songNotes
 
   const updateStats = useCallback(
@@ -52,6 +56,7 @@ export function useSession({ songNotes, onGradeResult }: UseSessionOptions) {
   const startSession = useCallback(() => {
     graderRef.current = new Grader(songNotesRef.current)
     startTimeRef.current = performance.now()
+    cursorIndexRef.current = 0
     setState('playing')
     setStats({ perfect: 0, good: 0, miss: 0, error: 0, total: 0 })
     setElapsedMs(0)
@@ -61,6 +66,18 @@ export function useSession({ songNotes, onGradeResult }: UseSessionOptions) {
       const now = performance.now()
       const elapsed = now - startTimeRef.current
       setElapsedMs(elapsed)
+
+      // 커서 이동: 경과 시간이 다음 음표의 startTime을 지나면 advance
+      const notes = songNotesRef.current
+      while (cursorIndexRef.current < notes.length) {
+        const nextNote = notes[cursorIndexRef.current]
+        if (elapsed >= nextNote.startTime) {
+          cursorIndexRef.current++
+          onCursorAdvanceRef.current?.()
+        } else {
+          break
+        }
+      }
 
       const misses = graderRef.current?.flush(elapsed) ?? []
       for (const miss of misses) {

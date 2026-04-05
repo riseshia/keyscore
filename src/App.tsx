@@ -15,8 +15,12 @@ function App() {
   const [lastNote, setLastNote] = useState<MidiNoteEvent | null>(null)
   const sheetMusicRef = useRef<SheetMusicHandle>(null)
 
+  const handleCursorAdvance = useCallback(() => {
+    sheetMusicRef.current?.cursorNext()
+  }, [])
+
   const { state, stats, handleNoteEvent: sessionHandleNote, stopSession } =
-    useSession({ songNotes })
+    useSession({ songNotes, onCursorAdvance: handleCursorAdvance })
 
   const handleMidiEvent = useCallback(
     (event: MidiNoteEvent) => {
