@@ -51,3 +51,30 @@ npm run lint       # ESLint
 ### 커밋 / PR
 
 - **커밋 메시지, PR 제목/본문은 한국어로 작성한다.**
+
+### 동작 확인 (agent-browser)
+
+인수 테스트 스크립트 대신 agent-browser로 직접 동작을 확인한다.
+
+```bash
+# 1. dev 서버 시작 (백그라운드)
+npm run dev -- --port 5199 &
+
+# 2. 페이지 열기
+agent-browser open http://localhost:5199 --session keyscore
+
+# 3. 스냅샷 (접근성 트리)
+agent-browser snapshot --session keyscore
+
+# 4. 스크린샷
+agent-browser screenshot /tmp/keyscore.png --session keyscore
+
+# 5. 요소 조작 (스냅샷의 ref 사용)
+agent-browser click @e1 --session keyscore
+
+# 6. 정리
+agent-browser close --session keyscore
+kill %1  # dev 서버 종료
+```
+
+**MIDI 입력 테스트:** agent-browser에는 `page.evaluate`가 없으므로, dev 모드에서 모의 MIDI 이벤트를 주입할 수 있는 UI를 앱 내에 제공한다 (예: 테스트 패널, URL 쿼리 파라미터 등).
