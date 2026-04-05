@@ -40,7 +40,7 @@
 
 ### M1: MusicXML 로드 + OSMD 악보 렌더링
 - [ ] OSMD 설치 + 기본 렌더링 — OSMD 패키지 추가, 하드코딩된 fixture로 악보 표시 확인
-- [ ] MusicXML 파일 로드 UI — 파일 선택 버튼, FileReader로 XML 읽기, OSMD에 전달
+- [ ] MusicXML 파일 로드 UI — File System Access API로 로컬 폴더 지정, 파일 목록 표시, 선택 시 OSMD에 전달
 - [ ] 커서 표시 — OSMD cursor API로 현재 위치 하이라이트
 - [ ] 커서 이동 — next()/previous() 호출로 마디 단위 이동 확인 (임시 버튼)
 
