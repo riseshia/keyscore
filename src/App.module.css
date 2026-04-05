@@ -14,3 +14,22 @@
   font-size: 24px;
   font-weight: 600;
 }
+
+.controls {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.controlButton {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.controlButton:hover {
+  background: #f0f0f0;
+}
