@@ -3,6 +3,7 @@ import FolderPicker from './components/FolderPicker'
 import SheetMusic from './components/SheetMusic'
 import type { SheetMusicHandle } from './components/SheetMusic'
 import { MidiDeviceSelector } from './components/MidiDeviceSelector'
+import { MockMidiKeyboard } from './components/MockMidiKeyboard'
 import { useMidi } from './hooks/useMidi'
 import type { MidiNoteEvent } from './lib/types'
 import styles from './App.module.css'
@@ -33,6 +34,7 @@ function App() {
         onSelect={selectDevice}
         error={error}
       />
+      <MockMidiKeyboard onNoteEvent={injectNoteEvent} />
       {lastNote && (
         <div className={styles.midiStatus}>
           마지막 입력: {lastNote.type === 'noteOn' ? 'ON' : 'OFF'}{' '}
@@ -59,19 +61,6 @@ function App() {
               className={styles.controlButton}
             >
               다음
-            </button>
-            <button
-              onClick={() =>
-                injectNoteEvent({
-                  type: 'noteOn',
-                  pitch: 60,
-                  velocity: 80,
-                  timestamp: performance.now(),
-                })
-              }
-              className={styles.controlButton}
-            >
-              테스트 C4
             </button>
           </div>
           <SheetMusic ref={sheetMusicRef} musicXml={musicXml} />
