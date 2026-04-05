@@ -14,7 +14,7 @@
       │                                             │
       ▼                                             ▼
 [NoteSequence]                              [OSMD Renderer]
- (피치, 타이밍, 길이, 핸드)                     (악보 뷰 - 리뷰 모드)
+ (피치, 타이밍, 길이)                     (악보 뷰 - 리뷰 모드)
       │                                             │
       ▼                                             ▼
 [Falling Notes Renderer]                    [Score Colorizer]
@@ -35,7 +35,7 @@
 | 모듈                       | 책임                                                               |
 | -------------------------- | ------------------------------------------------------------------ |
 | **MusicXML Parser**        | MusicXML → NoteSequence 변환. OSMD 또는 별도 파서 사용             |
-| **NoteSequence**           | 곡의 노트 데이터. `{pitch, startTime, duration, hand}[]`           |
+| **NoteSequence**           | 곡의 노트 데이터. `{pitch, startTime, duration}[]`                 |
 | **Game Loop**              | 1ms setInterval로 시간 진행, 판정 트리거, 렌더 갱신 요청           |
 | **MIDI Input**             | Web MIDI API로 키보드 입력 수신. `{note, velocity, timestamp}`     |
 | **Note Matcher**           | 입력된 노트와 기대 노트 매칭. 2-phase: lateNotes + upcomingNotes   |
@@ -54,7 +54,6 @@ interface SongNote {
   pitch: number // MIDI note number (0-127)
   startTime: number // 시작 시간 (ms)
   duration: number // 길이 (ms)
-  hand: 'left' | 'right'
 }
 ```
 
@@ -122,7 +121,7 @@ adjustedDiff = (actualDiff * 1000) / bpmModifier
 
 - Canvas 2D, requestAnimationFrame (~60fps)
 - PIXELS_PER_SECOND: 설정 가능 (기본 225px)
-- 노트: roundRect, 오른손 보라색, 왼손 주황색
+- 노트: roundRect
 - 판정선: 화면 하단
 - viewport 최적화: 화면 내 노트만 렌더링
 
