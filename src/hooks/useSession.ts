@@ -114,11 +114,19 @@ export function useSession({
       setElapsedMs(elapsed)
 
       // 커서 이동: 경과 시간이 다음 음표의 startTime을 지나면 advance
+      // 같은 startTime의 음표들(화음 등)은 하나의 beat이므로 cursor.next()는 한 번만
       const notes = songNotesRef.current
       while (cursorIndexRef.current < notes.length) {
         const nextNote = notes[cursorIndexRef.current]
         if (elapsed >= nextNote.startTime) {
-          cursorIndexRef.current++
+          const currentStartTime = nextNote.startTime
+          // 같은 startTime의 음표들을 모두 건너뜀
+          while (
+            cursorIndexRef.current < notes.length &&
+            notes[cursorIndexRef.current].startTime === currentStartTime
+          ) {
+            cursorIndexRef.current++
+          }
           onCursorAdvanceRef.current?.()
         } else {
           break
