@@ -47,19 +47,24 @@
 
 ### M1: MusicXML 로드 + OSMD 악보 렌더링
 
-- [ ] OSMD 설치 + 기본 렌더링 — OSMD 패키지 추가, 하드코딩된 fixture로 악보 표시 확인
-- [ ] MusicXML 파일 로드 UI — File System Access API로 로컬 폴더 지정, 파일 목록 표시, 선택 시 OSMD에 전달
-- [ ] 커서 표시 — OSMD cursor API로 현재 위치 하이라이트
-- [ ] 커서 이동 — next()/previous() 호출로 마디 단위 이동 확인 (임시 버튼)
+- [x] OSMD 설치 + 기본 렌더링 — OSMD 패키지 추가, 파일 선택 시 악보 표시
+- [x] MusicXML 파일 로드 UI — File System Access API로 로컬 폴더 지정, 파일 목록 표시
+- [x] 커서 표시 — OSMD cursor API로 현재 위치 하이라이트
+- [x] 커서 이동 — next()/previous()/reset() (임시 버튼)
 
 ### M2: MIDI 입력 + 실시간 판정
 
-- [ ] Web MIDI API 연결
-- [ ] OSMD 파싱 결과에서 NoteSequence 추출
-- [ ] Note Matcher 구현 (2-phase)
-- [ ] Grader 구현 (Perfect/Good/Miss/Error)
-- [ ] 실시간 판정 표시 (악보 위 음표 색상 변경)
-- [ ] 세션 통계 (정확도, 판정 카운트)
+- [ ] OSMD 파싱 결과에서 NoteSequence 추출 — OSMD 내부 데이터 → `SongNote[]` 변환
+- [ ] NoteSequence 추출 테스트 — 엘리제 fixture로 추출 결과 검증 (음표 수, 피치, 타이밍)
+- [ ] Web MIDI API 연결 — MIDI 입력 hook, 디바이스 선택 UI
+- [ ] 모의 MIDI 입력 UI — dev 모드에서 키보드로 MIDI 이벤트 시뮬레이션 (테스트용)
+- [ ] Game Loop — setInterval로 시간 진행, 커서 자동 이동
+- [ ] Note Matcher 구현 — 2-phase 매칭 (late notes + upcoming notes)
+- [ ] Note Matcher 테스트 — 다양한 타이밍 시나리오 (정시, 이른, 늦은, 미스)
+- [ ] Grader 구현 — 타이밍 차이 → Perfect (≤50ms) / Good (≤300ms) / Miss / Error
+- [ ] Grader 테스트 — 경계값 테스트
+- [ ] 실시간 판정 표시 — 악보 위 음표 색상 변경
+- [ ] 세션 통계 UI — 정확도, 판정 카운트 표시
 
 ### M3: 리뷰 모드
 
