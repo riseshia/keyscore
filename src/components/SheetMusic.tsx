@@ -1,10 +1,7 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
 import { extractNoteSequenceWithRefs } from '../lib/note-sequence'
-import {
-  colorizeNote,
-  resetAllNoteColors,
-} from '../lib/score-colorizer'
+import { ScoreColorTracker } from '../lib/score-colorizer'
 import type { Grade } from '../lib/grader'
 import type { SongNote } from '../lib/types'
 import styles from './SheetMusic.module.css'
@@ -20,6 +17,7 @@ export interface SheetMusicHandle {
   cursorReset: () => void
   colorNote: (noteIndex: number, grade: Grade) => void
   resetColors: () => void
+  scrollToTop: () => void
 }
 
 export default forwardRef<SheetMusicHandle, SheetMusicProps>(
@@ -28,6 +26,7 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
     const osmdRef = useRef<OpenSheetMusicDisplay | null>(null)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const osmdNotesRef = useRef<any[]>([])
+    const colorTrackerRef = useRef(new ScoreColorTracker())
 
     useImperativeHandle(ref, () => ({
       cursorNext: () => {
@@ -50,12 +49,15 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
         const osmd = osmdRef.current
         const osmdNote = osmdNotesRef.current[noteIndex]
         if (!osmd || !osmdNote) return
-        colorizeNote(osmd, osmdNote, grade)
+        colorTrackerRef.current.colorize(osmd, osmdNote, grade)
       },
       resetColors: () => {
         const osmd = osmdRef.current
         if (!osmd) return
-        resetAllNoteColors(osmd, osmdNotesRef.current)
+        colorTrackerRef.current.resetAll(osmd, osmdNotesRef.current)
+      },
+      scrollToTop: () => {
+        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       },
     }))
 
@@ -68,6 +70,7 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
         followCursor: true,
       })
       osmdRef.current = osmd
+      colorTrackerRef.current = new ScoreColorTracker()
 
       osmd.load(musicXml).then(() => {
         osmd.render()

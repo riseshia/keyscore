@@ -1,10 +1,5 @@
 import type { SongNote } from './types'
 
-// OSMD 내부 데이터 구조 (참고용):
-// Sheet.SourceMeasures[].VerticalSourceStaffEntryContainers[]
-//   .StaffEntries[].VoiceEntries[].Notes[]
-// Note: { halfTone, Pitch.getHalfTone(), Length.RealValue, isRest(), NoteTie }
-
 function fractionToMs(realValue: number, bpm: number): number {
   // OSMD Fraction.RealValue는 whole note 기준 (1.0 = whole note)
   // BPM은 quarter note 기준이므로 whole note = 4 beats
@@ -15,7 +10,7 @@ function fractionToMs(realValue: number, bpm: number): number {
 export interface NoteSequenceResult {
   notes: SongNote[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  osmdNotes: any[] // OSMD Note 객체 배열 (notes와 같은 인덱스)
+  osmdNotes: any[] // OSMD Note 객체 배열 (notes와 같은 인덱스, 반복 구간은 같은 객체 중복)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,59 +18,52 @@ export function extractNoteSequence(sheet: any): SongNote[] {
   return extractNoteSequenceWithRefs(sheet).notes
 }
 
+/**
+ * MusicPartManagerIterator를 사용하여 재생 순서(반복 포함)로 음표를 추출한다.
+ * CurrentEnrolledTimestamp로 누적 재생 시간을 계산하므로 도돌이표를 올바르게 처리한다.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function extractNoteSequenceWithRefs(sheet: any): NoteSequenceResult {
   const entries: { note: SongNote; osmdNote: unknown }[] = []
-  let currentBpm =
-    sheet.DefaultStartTempoInBpm > 0 ? sheet.DefaultStartTempoInBpm : 120
+  const iterator = sheet.MusicPartManager.getIterator()
+  const seenNotes = new Set<unknown>() // 같은 beat 위치의 중복 처리 방지
 
-  for (const measure of sheet.SourceMeasures) {
-    // 마디별 템포 갱신
-    if (measure.TempoInBPM > 0) {
-      currentBpm = measure.TempoInBPM
-    }
-    for (const tempoExpr of measure.TempoExpressions) {
-      if (tempoExpr.InstantaneousTempo?.TempoInBpm) {
-        currentBpm = tempoExpr.InstantaneousTempo.TempoInBpm
+  while (!iterator.EndReached) {
+    const bpm = iterator.CurrentBpm > 0 ? iterator.CurrentBpm : 120
+    const enrolledTimestamp = iterator.CurrentEnrolledTimestamp
+    const startTime = fractionToMs(enrolledTimestamp.RealValue, bpm)
+
+    // 이 beat 위치에서 시작하는 note 수집 (같은 beat에 같은 note 중복 방지)
+    seenNotes.clear()
+    for (const voiceEntry of iterator.CurrentVoiceEntries) {
+      if (voiceEntry.IsGrace) continue
+
+      for (const note of voiceEntry.Notes) {
+        if (note.isRest()) continue
+        if (note.NoteTie && note.NoteTie.StartNote !== note) continue
+        if (seenNotes.has(note)) continue
+        seenNotes.add(note)
+
+        // OSMD의 getHalfTone()은 표준 MIDI보다 1옥타브(12) 낮은 값을 반환
+        const rawPitch = note.Pitch
+          ? note.Pitch.getHalfTone()
+          : note.halfTone
+        const pitch = rawPitch + 12
+
+        entries.push({
+          note: {
+            pitch,
+            startTime: Math.round(startTime),
+            duration: Math.round(
+              fractionToMs(note.Length.RealValue, bpm),
+            ),
+          },
+          osmdNote: note,
+        })
       }
     }
 
-    for (const container of measure.VerticalSourceStaffEntryContainers) {
-      const absTimestamp = container.getAbsoluteTimestamp()
-      const startTime = fractionToMs(absTimestamp.RealValue, currentBpm)
-
-      for (const staffEntry of container.StaffEntries) {
-        if (!staffEntry) continue
-
-        for (const voiceEntry of staffEntry.VoiceEntries) {
-          if (voiceEntry.IsGrace) continue
-
-          for (const note of voiceEntry.Notes) {
-            if (note.isRest()) continue
-
-            // 타이 음표: 시작 음표가 아닌 경우 스킵 (중복 방지)
-            if (note.NoteTie && note.NoteTie.StartNote !== note) continue
-
-            // OSMD의 getHalfTone()은 표준 MIDI보다 1옥타브(12) 낮은 값을 반환
-            const rawPitch = note.Pitch
-              ? note.Pitch.getHalfTone()
-              : note.halfTone
-            const pitch = rawPitch + 12
-
-            entries.push({
-              note: {
-                pitch,
-                startTime: Math.round(startTime),
-                duration: Math.round(
-                  fractionToMs(note.Length.RealValue, currentBpm),
-                ),
-              },
-              osmdNote: note,
-            })
-          }
-        }
-      }
-    }
+    iterator.moveToNext()
   }
 
   entries.sort((a, b) => a.note.startTime - b.note.startTime)
