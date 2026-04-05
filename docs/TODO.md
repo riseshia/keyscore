@@ -61,16 +61,35 @@
 - [x] Grader 구현 + 테스트 — 타이밍 매칭 + 판정 (Perfect/Good/Miss/Error), 12 테스트
 - [x] Game Loop — useSession hook, 첫 음 트리거, 50ms flush, 자동 종료
 - [x] 세션 통계 UI — 판정 카운트 실시간 표시
-- [ ] 실시간 판정 표시 — 악보 위 음표 색상 변경 (→ M3에서 Score Colorizer와 함께)
+- [x] 커서 자동 이동 — game loop에서 시간 진행에 따라 OSMD cursor.next() 호출
 
-### M3: 리뷰 모드
+### M3: 리뷰 모드 + 판정 시각화
 
-- [ ] Session Recorder (연주 기록 저장)
-- [ ] 판정 결과 → 악보 음표 색상 표시 (연주 끝난 후)
-- [ ] 마디 네비게이션
+#### M3-1: GradeResult에 음표 인덱스 추가
+- [ ] GradeResult에 `noteIndex: number` 추가 — SongNote 참조만으로는 OSMD 음표와 매칭 어려움, 인덱스가 키
+- [ ] Grader 테스트 업데이트
+
+#### M3-2: Session Recorder
+- [ ] `PlayedNote` 타입 정의 (pitch, time, velocity, duration, matchedTo, grade)
+- [ ] useSession에서 GradeResult를 `PlayedNote[]`로 누적 기록
+- [ ] 세션 종료 시 `SessionResult` 반환 (songNotes + playedNotes + stats + accuracy)
+
+#### M3-3: Score Colorizer (판정 → 음표 색상)
+- [ ] OSMD VoiceEntry/Note에 접근하는 방법 조사 — noteIndex → OSMD 내부 음표 매핑
+- [ ] `colorizeNote(osmd, noteIndex, grade)` 함수 — SVG 음표 요소 색상 변경
+  - Perfect: 초록 (#00cc00), Good: 노랑 (#cccc00), Miss: 빨강 (#cc0000), Error: 마커
+- [ ] 연주 중 실시간 색상 반영 — onGradeResult 콜백에서 즉시 색상 적용
+- [ ] 세션 종료 후 전체 색상 표시 — SessionResult의 전체 판정 데이터로 일괄 색칠
+
+#### M3-4: 리뷰 UI
+- [ ] 세션 결과 요약 화면 — 정확도(%), Perfect/Good/Miss/Error 카운트
+- [ ] state 분리: idle → playing → finished → review
+- [ ] 리뷰 모드에서 마디 네비게이션 (이전/다음 마디)
+- [ ] "다시 연습" 버튼 — 커서 리셋 + idle로 복귀
 
 ### M4: 추가 기능
 
+- [ ] iPad Safari 대응 — File System Access API 미지원, `<input type="file">` fallback
 - [ ] 폴링 노트 모드 (악보 암기 후 타이밍 연습용)
 - [ ] MIDI 파일 입력 지원 (폴링 노트용)
 - [ ] Wait 모드
