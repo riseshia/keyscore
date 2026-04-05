@@ -1,46 +1,9 @@
 import type { SongNote } from './types'
 
-// OSMD 내부 타입 (런타임에만 존재, 최소한의 인터페이스만 정의)
-interface OsmdFraction {
-  RealValue: number
-}
-
-interface OsmdPitch {
-  getHalfTone: () => number
-}
-
-interface OsmdNote {
-  halfTone: number
-  Pitch: OsmdPitch | null
-  Length: OsmdFraction
-  isRest: () => boolean
-  NoteTie: { StartNote: OsmdNote } | null
-}
-
-interface OsmdVoiceEntry {
-  Notes: OsmdNote[]
-  IsGrace: boolean
-}
-
-interface OsmdStaffEntry {
-  VoiceEntries: OsmdVoiceEntry[]
-}
-
-interface OsmdVerticalContainer {
-  getAbsoluteTimestamp: () => OsmdFraction
-  StaffEntries: (OsmdStaffEntry | null)[]
-}
-
-interface OsmdMeasure {
-  VerticalSourceStaffEntryContainers: OsmdVerticalContainer[]
-  TempoExpressions: { InstantaneousTempo?: { TempoInBpm: number } }[]
-  TempoInBPM: number
-}
-
-interface OsmdSheet {
-  SourceMeasures: OsmdMeasure[]
-  DefaultStartTempoInBpm: number
-}
+// OSMD 내부 데이터 구조 (참고용):
+// Sheet.SourceMeasures[].VerticalSourceStaffEntryContainers[]
+//   .StaffEntries[].VoiceEntries[].Notes[]
+// Note: { halfTone, Pitch.getHalfTone(), Length.RealValue, isRest(), NoteTie }
 
 function fractionToMs(realValue: number, bpm: number): number {
   // OSMD Fraction.RealValue는 whole note 기준 (1.0 = whole note)
@@ -49,7 +12,8 @@ function fractionToMs(realValue: number, bpm: number): number {
   return (beats / bpm) * 60 * 1000
 }
 
-export function extractNoteSequence(sheet: OsmdSheet): SongNote[] {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function extractNoteSequence(sheet: any): SongNote[] {
   const notes: SongNote[] = []
   let currentBpm =
     sheet.DefaultStartTempoInBpm > 0 ? sheet.DefaultStartTempoInBpm : 120
@@ -81,7 +45,11 @@ export function extractNoteSequence(sheet: OsmdSheet): SongNote[] {
             // 타이 음표: 시작 음표가 아닌 경우 스킵 (중복 방지)
             if (note.NoteTie && note.NoteTie.StartNote !== note) continue
 
-            const pitch = note.Pitch ? note.Pitch.getHalfTone() : note.halfTone
+            // OSMD의 getHalfTone()은 표준 MIDI보다 1옥타브(12) 낮은 값을 반환
+            const rawPitch = note.Pitch
+              ? note.Pitch.getHalfTone()
+              : note.halfTone
+            const pitch = rawPitch + 12
 
             notes.push({
               pitch,

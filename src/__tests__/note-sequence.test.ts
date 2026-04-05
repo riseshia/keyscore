@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { extractNoteSequence } from '../lib/note-sequence'
-import type { SongNote } from '../lib/types'
 
 // OSMD 내부 데이터를 모킹하기 위한 헬퍼
 function createFraction(numerator: number, denominator: number) {
@@ -14,14 +13,17 @@ function createFraction(numerator: number, denominator: number) {
 function createNote(
   halfTone: number,
   length: { numerator: number; denominator: number },
-  opts: { isRest?: boolean; noteTie?: unknown; isGrace?: boolean } = {},
+  opts: {
+    isRest?: boolean
+    noteTie?: { StartNote: unknown } | null
+  } = {},
 ) {
   return {
-    halfTone, // Pitch.getHalfTone() 우선 사용, fallback용
+    halfTone,
     Pitch: opts.isRest ? null : { getHalfTone: () => halfTone },
     Length: createFraction(length.numerator, length.denominator),
     isRest: () => opts.isRest ?? false,
-    NoteTie: opts.noteTie ?? null,
+    NoteTie: opts.noteTie ?? (null as { StartNote: unknown } | null),
   }
 }
 
@@ -109,7 +111,7 @@ describe('extractNoteSequence', () => {
 
     const notes = extractNoteSequence(sheet)
     expect(notes).toHaveLength(1)
-    expect(notes[0].pitch).toBe(60)
+    expect(notes[0].pitch).toBe(72) // OSMD raw 60 + 12 offset = MIDI 72
     expect(notes[0].startTime).toBe(0)
     expect(notes[0].duration).toBe(500) // 1/4 note at 120 BPM = 500ms
   })
@@ -210,7 +212,7 @@ describe('extractNoteSequence', () => {
 
     const notes = extractNoteSequence(sheet)
     expect(notes).toHaveLength(1)
-    expect(notes[0].pitch).toBe(62)
+    expect(notes[0].pitch).toBe(74) // OSMD raw 62 + 12
   })
 
   it('startTime 순으로 정렬된다', () => {
@@ -247,7 +249,7 @@ describe('extractNoteSequence', () => {
 
     const notes = extractNoteSequence(sheet)
     expect(notes).toHaveLength(2)
-    expect(notes[0].pitch).toBe(60)
-    expect(notes[1].pitch).toBe(62)
+    expect(notes[0].pitch).toBe(72) // OSMD raw 60 + 12
+    expect(notes[1].pitch).toBe(74) // OSMD raw 62 + 12
   })
 })

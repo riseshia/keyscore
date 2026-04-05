@@ -54,17 +54,14 @@
 
 ### M2: MIDI 입력 + 실시간 판정
 
-- [ ] OSMD 파싱 결과에서 NoteSequence 추출 — OSMD 내부 데이터 → `SongNote[]` 변환
-- [ ] NoteSequence 추출 테스트 — 엘리제 fixture로 추출 결과 검증 (음표 수, 피치, 타이밍)
-- [ ] Web MIDI API 연결 — MIDI 입력 hook, 디바이스 선택 UI
-- [ ] 모의 MIDI 입력 UI — dev 모드에서 키보드로 MIDI 이벤트 시뮬레이션 (테스트용)
-- [ ] Game Loop — setInterval로 시간 진행, 커서 자동 이동
-- [ ] Note Matcher 구현 — 2-phase 매칭 (late notes + upcoming notes)
-- [ ] Note Matcher 테스트 — 다양한 타이밍 시나리오 (정시, 이른, 늦은, 미스)
-- [ ] Grader 구현 — 타이밍 차이 → Perfect (≤50ms) / Good (≤300ms) / Miss / Error
-- [ ] Grader 테스트 — 경계값 테스트
-- [ ] 실시간 판정 표시 — 악보 위 음표 색상 변경
-- [ ] 세션 통계 UI — 정확도, 판정 카운트 표시
+- [x] OSMD 파싱 결과에서 NoteSequence 추출 — OSMD 내부 데이터 → `SongNote[]` 변환
+- [x] NoteSequence 추출 테스트 — 엘리제 fixture 통합 테스트 + OSMD pitch offset(+12) 수정
+- [x] Web MIDI API 연결 — useMidi hook, 디바이스 선택 UI
+- [x] 모의 MIDI 입력 UI — 컴퓨터 키보드 → MIDI 이벤트 시뮬레이션 (2옥타브, C4~F5)
+- [x] Grader 구현 + 테스트 — 타이밍 매칭 + 판정 (Perfect/Good/Miss/Error), 12 테스트
+- [x] Game Loop — useSession hook, 첫 음 트리거, 50ms flush, 자동 종료
+- [x] 세션 통계 UI — 판정 카운트 실시간 표시
+- [ ] 실시간 판정 표시 — 악보 위 음표 색상 변경 (→ M3에서 Score Colorizer와 함께)
 
 ### M3: 리뷰 모드
 
