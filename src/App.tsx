@@ -138,6 +138,13 @@ function App() {
                   <span>
                     정확도: {Math.round(sessionResult.stats.accuracy * 100)}%
                   </span>
+                  {Math.abs(sessionResult.drift) >= 10 && (
+                    <span className={styles.drift}>
+                      {sessionResult.drift > 0
+                        ? `+${Math.round(sessionResult.drift)}ms 늦음`
+                        : `${Math.round(sessionResult.drift)}ms 빠름`}
+                    </span>
+                  )}
                   <button
                     onClick={handleRestart}
                     className={styles.controlButton}
@@ -158,6 +165,13 @@ function App() {
               <span className={styles.bottomAccuracy}>
                 정확도: {Math.round(sessionResult.stats.accuracy * 100)}%
               </span>
+              {Math.abs(sessionResult.drift) >= 10 && (
+                <span className={styles.drift}>
+                  {sessionResult.drift > 0
+                    ? `+${Math.round(sessionResult.drift)}ms 늦음`
+                    : `${Math.round(sessionResult.drift)}ms 빠름`}
+                </span>
+              )}
               <button
                 onClick={handleRestart}
                 className={styles.controlButton}
