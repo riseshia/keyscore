@@ -85,6 +85,7 @@ export function useSession({
         ...s,
         accuracy: (s.perfect + s.good) / total,
       },
+      drift: graderRef.current?.getOffset() ?? 0,
     }
   }, [])
 

@@ -12,13 +12,22 @@ export interface GradeResult {
   timeDiff: number // ms (양수 = 늦음, 음수 = 빠름)
 }
 
+const OFFSET_SMOOTHING = 0.3 // 새 값 반영 비율 (0~1)
+
 export class Grader {
   private songNotes: SongNote[]
   private matched: Set<number> // songNotes 배열 인덱스
+  private offset: number // 적응형 오프셋 (ms)
 
   constructor(songNotes: SongNote[]) {
     this.songNotes = songNotes
     this.matched = new Set()
+    this.offset = 0
+  }
+
+  /** 현재 적응형 오프셋 값을 반환한다 (양수 = 늦음, 음수 = 빠름). */
+  getOffset(): number {
+    return this.offset
   }
 
   /**
@@ -35,7 +44,7 @@ export class Grader {
       const songNote = this.songNotes[i]
       if (songNote.pitch !== pitch) continue
 
-      const diff = timestamp - songNote.startTime
+      const diff = timestamp - songNote.startTime - this.offset
       const absDiff = Math.abs(diff)
 
       // GOOD_RANGE 밖이면 스킵
@@ -52,10 +61,15 @@ export class Grader {
 
     this.matched.add(bestIndex)
     const songNote = this.songNotes[bestIndex]
-    const timeDiff = timestamp - songNote.startTime
-    const grade = bestDiff <= PERFECT_RANGE ? 'perfect' : 'good'
+    const rawDiff = timestamp - songNote.startTime
+    const adjustedDiff = rawDiff - this.offset
+    const absDiff = Math.abs(adjustedDiff)
+    const grade = absDiff <= PERFECT_RANGE ? 'perfect' : 'good'
 
-    return { songNote, noteIndex: bestIndex, grade, timeDiff }
+    // 오프셋 갱신: 이동 평균
+    this.offset = this.offset * (1 - OFFSET_SMOOTHING) + rawDiff * OFFSET_SMOOTHING
+
+    return { songNote, noteIndex: bestIndex, grade, timeDiff: rawDiff }
   }
 
   /**
@@ -68,7 +82,7 @@ export class Grader {
       if (this.matched.has(i)) continue
 
       const songNote = this.songNotes[i]
-      const elapsed = currentTime - songNote.startTime
+      const elapsed = currentTime - songNote.startTime - this.offset
 
       if (elapsed > GOOD_RANGE) {
         this.matched.add(i)

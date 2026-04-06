@@ -15,6 +15,7 @@ export interface SessionResult {
     total: number
     accuracy: number // (perfect + good) / total
   }
+  drift: number // 최종 적응형 오프셋 (ms). 양수 = 전체적으로 늦음, 음수 = 빠름
 }
 
 export interface GradeResultRecord {
