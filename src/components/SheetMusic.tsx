@@ -15,6 +15,8 @@ export interface SheetMusicHandle {
   cursorNext: () => void
   cursorPrevious: () => void
   cursorReset: () => void
+  cursorSetTo: (beatIndex: number) => void
+  getBeatIndex: () => number
   colorNote: (noteIndex: number, grade: Grade) => void
   resetColors: () => void
   scrollToTop: () => void
@@ -27,24 +29,39 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const osmdNotesRef = useRef<any[]>([])
     const colorTrackerRef = useRef(new ScoreColorTracker())
+    const beatIndexRef = useRef(0)
 
     useImperativeHandle(ref, () => ({
       cursorNext: () => {
         const cursor = osmdRef.current?.cursor
         if (!cursor) return
         cursor.next()
+        beatIndexRef.current++
       },
       cursorPrevious: () => {
         const cursor = osmdRef.current?.cursor
         if (!cursor) return
         cursor.previous()
+        if (beatIndexRef.current > 0) beatIndexRef.current--
       },
       cursorReset: () => {
         const cursor = osmdRef.current?.cursor
         if (!cursor) return
         cursor.reset()
         cursor.show()
+        beatIndexRef.current = 0
       },
+      cursorSetTo: (beatIndex: number) => {
+        const cursor = osmdRef.current?.cursor
+        if (!cursor) return
+        cursor.reset()
+        for (let i = 0; i < beatIndex; i++) {
+          cursor.next()
+        }
+        cursor.show()
+        beatIndexRef.current = beatIndex
+      },
+      getBeatIndex: () => beatIndexRef.current,
       colorNote: (noteIndex: number, grade: Grade) => {
         const osmd = osmdRef.current
         const osmdNote = osmdNotesRef.current[noteIndex]

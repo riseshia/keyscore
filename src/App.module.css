@@ -105,3 +105,14 @@
   color: #888;
   font-family: monospace;
 }
+
+.separator {
+  color: #ccc;
+  font-size: 14px;
+}
+
+.rangeInfo {
+  font-size: 13px;
+  color: #666;
+  padding: 0 0 4px;
+}
