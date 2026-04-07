@@ -33,10 +33,10 @@ function App() {
   const beatTimes = useMemo(() => getBeatTimes(songNotes), [songNotes])
 
   const range: SectionRange | null = useMemo(() => {
-    if (startBeat === null || endBeat === null) return null
+    if (startBeat === null && endBeat === null) return null
     return {
-      startTime: beatTimes[startBeat],
-      endTime: beatTimes[endBeat],
+      startTime: startBeat !== null ? beatTimes[startBeat] : beatTimes[0],
+      endTime: endBeat !== null ? beatTimes[endBeat] : beatTimes[beatTimes.length - 1],
     }
   }, [startBeat, endBeat, beatTimes])
 
