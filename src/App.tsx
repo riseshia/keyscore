@@ -22,12 +22,21 @@ function getBeatTimes(notes: SongNote[]): number[] {
   return times
 }
 
+const SPEED_MIN = 0.1
+const SPEED_MAX = 1.0
+const SPEED_STEP = 0.1
+
+function clampSpeed(v: number): number {
+  return Math.round(Math.max(SPEED_MIN, Math.min(SPEED_MAX, v)) * 10) / 10
+}
+
 function App() {
   const [musicXml, setMusicXml] = useState<string | null>(null)
   const [songNotes, setSongNotes] = useState<SongNote[]>([])
   const [lastNote, setLastNote] = useState<MidiNoteEvent | null>(null)
   const [startBeat, setStartBeat] = useState<number | null>(null)
   const [endBeat, setEndBeat] = useState<number | null>(null)
+  const [speedModifier, setSpeedModifier] = useState(1.0)
   const sheetMusicRef = useRef<SheetMusicHandle>(null)
 
   const beatTimes = useMemo(() => getBeatTimes(songNotes), [songNotes])
@@ -57,6 +66,7 @@ function App() {
   } = useSession({
     songNotes,
     range,
+    speedModifier,
     onCursorAdvance: handleCursorAdvance,
     onGradeResult: handleGradeResult,
   })
@@ -193,6 +203,23 @@ function App() {
                 리셋
               </button>
             )}
+            <span className={styles.separator} />
+            <span className={styles.speedLabel}>배속:</span>
+            <button
+              onClick={() => setSpeedModifier((v) => clampSpeed(v - SPEED_STEP))}
+              className={styles.controlButton}
+              disabled={state === 'playing' || speedModifier <= SPEED_MIN}
+            >
+              −
+            </button>
+            <span className={styles.speedValue}>{speedModifier.toFixed(1)}x</span>
+            <button
+              onClick={() => setSpeedModifier((v) => clampSpeed(v + SPEED_STEP))}
+              className={styles.controlButton}
+              disabled={state === 'playing' || speedModifier >= SPEED_MAX}
+            >
+              +
+            </button>
           </div>
           {(startBeat !== null || endBeat !== null) && (
             <div className={styles.rangeInfo}>
