@@ -57,6 +57,7 @@ export function useSession({
   const cursorIndexRef = useRef(0)
   const recordsRef = useRef<GradeResultRecord[]>([])
   const timeOffsetRef = useRef(0) // 구간 시작 시간 오프셋
+  const indexMapRef = useRef<number[]>([]) // normalizedNotes index → 원래 songNotes index
 
   onGradeResultRef.current = onGradeResult
   onCursorAdvanceRef.current = onCursorAdvance
@@ -108,19 +109,28 @@ export function useSession({
     setSessionResult(buildSessionResult())
   }, [buildSessionResult])
 
-  const getActiveNotes = useCallback((): SongNote[] => {
-    const notes = songNotesRef.current
+  const getActiveNotes = useCallback((): { notes: SongNote[]; indexMap: number[] } => {
+    const allNotes = songNotesRef.current
     const r = rangeRef.current
-    if (!r) return notes
-    return notes.filter(
-      (n) => n.startTime >= r.startTime && n.startTime <= r.endTime,
-    )
+    if (!r) {
+      return { notes: allNotes, indexMap: allNotes.map((_, i) => i) }
+    }
+    const notes: SongNote[] = []
+    const indexMap: number[] = []
+    for (let i = 0; i < allNotes.length; i++) {
+      if (allNotes[i].startTime >= r.startTime && allNotes[i].startTime <= r.endTime) {
+        notes.push(allNotes[i])
+        indexMap.push(i)
+      }
+    }
+    return { notes, indexMap }
   }, [])
 
   const startSession = useCallback(() => {
-    const activeNotes = getActiveNotes()
+    const { notes: activeNotes, indexMap } = getActiveNotes()
     if (activeNotes.length === 0) return
 
+    indexMapRef.current = indexMap
     const r = rangeRef.current
     timeOffsetRef.current = r ? r.startTime : 0
 
@@ -176,14 +186,15 @@ export function useSession({
           statsRef.current = next
           return next
         })
+        const originalIndex = indexMapRef.current[miss.noteIndex] ?? miss.noteIndex
         addRecord({
-          noteIndex: miss.noteIndex,
+          noteIndex: originalIndex,
           grade: 'miss',
           pitch: miss.songNote.pitch,
           time: elapsed,
           timeDiff: miss.timeDiff,
         })
-        onGradeResultRef.current?.(miss)
+        onGradeResultRef.current?.({ ...miss, noteIndex: originalIndex })
       }
 
       // 모든 음표가 지나갔으면 종료
@@ -217,15 +228,16 @@ export function useSession({
       const result = graderRef.current?.processNoteOn(event.pitch, elapsed)
 
       if (result) {
+        const originalIndex = indexMapRef.current[result.noteIndex] ?? result.noteIndex
         updateStats(result.grade)
         addRecord({
-          noteIndex: result.noteIndex,
+          noteIndex: originalIndex,
           grade: result.grade,
           pitch: event.pitch,
           time: elapsed,
           timeDiff: result.timeDiff,
         })
-        onGradeResultRef.current?.(result)
+        onGradeResultRef.current?.({ ...result, noteIndex: originalIndex })
       } else {
         // 매칭 안 됨 → Error
         updateStats('error')
