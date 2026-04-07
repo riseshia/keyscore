@@ -181,9 +181,15 @@ function App() {
               </>
             )}
             {state !== 'idle' && (
-              <button onClick={stopSession} className={styles.controlButton}>
-                중지
-              </button>
+              <>
+                <span className={styles.separator}>|</span>
+                <button onClick={stopSession} className={styles.controlButton}>
+                  중지
+                </button>
+                <button onClick={handleRestart} className={styles.controlButton}>
+                  리셋
+                </button>
+              </>
             )}
           </div>
           {(startBeat !== null || endBeat !== null) && (
