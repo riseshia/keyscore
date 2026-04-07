@@ -186,10 +186,12 @@ function App() {
                 <button onClick={stopSession} className={styles.controlButton}>
                   중지
                 </button>
-                <button onClick={handleRestart} className={styles.controlButton}>
-                  리셋
-                </button>
               </>
+            )}
+            {songNotes.length > 0 && (
+              <button onClick={handleRestart} className={styles.controlButton}>
+                리셋
+              </button>
             )}
           </div>
           {(startBeat !== null || endBeat !== null) && (
