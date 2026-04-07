@@ -212,7 +212,7 @@ function App() {
             >
               −
             </button>
-            <span className={styles.speedLabel}>{speedModifier.toFixed(1)}x</span>
+            <span className={styles.speedValue}>{speedModifier.toFixed(1)}x</span>
             <button
               onClick={() => setSpeedModifier((v) => clampSpeed(v + SPEED_STEP))}
               className={styles.controlButton}
