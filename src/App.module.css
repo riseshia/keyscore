@@ -30,8 +30,36 @@
   font-size: 14px;
 }
 
-.controlButton:hover {
+.controlButton:hover:not(:disabled) {
   background: #f0f0f0;
+}
+
+.controlButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.controlButtonActive {
+  background: #333;
+  color: white;
+  border-color: #333;
+}
+
+.controlButtonActive:hover:not(:disabled) {
+  background: #444;
+}
+
+.separator {
+  width: 1px;
+  height: 24px;
+  background: #ddd;
+  margin: 0 4px;
+}
+
+.speedLabel {
+  font-size: 13px;
+  color: #666;
+  align-self: center;
 }
 
 .midiStatus {

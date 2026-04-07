@@ -25,6 +25,7 @@ export interface SectionRange {
 interface UseSessionOptions {
   songNotes: SongNote[]
   range?: SectionRange | null
+  speedModifier?: number // 배속 (0.5~1.0, 기본값 1.0)
   onGradeResult?: (result: GradeResult) => void
   onCursorAdvance?: () => void
 }
@@ -32,6 +33,7 @@ interface UseSessionOptions {
 export function useSession({
   songNotes,
   range,
+  speedModifier = 1.0,
   onGradeResult,
   onCursorAdvance,
 }: UseSessionOptions) {
@@ -54,6 +56,7 @@ export function useSession({
   const onCursorAdvanceRef = useRef(onCursorAdvance)
   const songNotesRef = useRef(songNotes)
   const rangeRef = useRef(range)
+  const speedModifierRef = useRef(speedModifier)
   const cursorIndexRef = useRef(0)
   const recordsRef = useRef<GradeResultRecord[]>([])
   const timeOffsetRef = useRef(0) // 구간 시작 시간 오프셋
@@ -63,6 +66,7 @@ export function useSession({
   onCursorAdvanceRef.current = onCursorAdvance
   songNotesRef.current = songNotes
   rangeRef.current = range
+  speedModifierRef.current = speedModifier
 
   const addRecord = useCallback(
     (record: GradeResultRecord) => {
@@ -135,11 +139,12 @@ export function useSession({
     timeOffsetRef.current = r ? r.startTime : 0
 
     // Grader에 전달할 노트의 시간을 0 기준으로 정규화
+    const speed = speedModifierRef.current
     const normalizedNotes = activeNotes.map((n) => ({
       ...n,
       startTime: n.startTime - timeOffsetRef.current,
     }))
-    graderRef.current = new Grader(normalizedNotes)
+    graderRef.current = new Grader(normalizedNotes, { speedModifier: speed })
 
     startTimeRef.current = performance.now()
     cursorIndexRef.current = 0
@@ -152,7 +157,8 @@ export function useSession({
     // Game loop: 50ms 간격으로 flush + 시간 갱신
     timerRef.current = setInterval(() => {
       const now = performance.now()
-      const elapsed = now - startTimeRef.current
+      const rawElapsed = now - startTimeRef.current
+      const elapsed = rawElapsed * speedModifierRef.current
       setElapsedMs(elapsed)
 
       // 커서 이동: 경과 시간이 다음 음표의 startTime을 지나면 advance
@@ -224,7 +230,8 @@ export function useSession({
         startSession()
       }
 
-      const elapsed = performance.now() - startTimeRef.current
+      const rawElapsed = performance.now() - startTimeRef.current
+      const elapsed = rawElapsed * speedModifierRef.current
       const result = graderRef.current?.processNoteOn(event.pitch, elapsed)
 
       if (result) {

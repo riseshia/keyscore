@@ -115,6 +115,54 @@ describe('Grader', () => {
     expect(r3!.grade).toBe('perfect')
   })
 
+  describe('배속 조절 (speedModifier)', () => {
+    it('0.5x에서 타이밍 윈도우가 2배로 확장된다', () => {
+      // 1.0x에서 100ms 차이면 Good. 0.5x에서 100ms 차이면 Perfect (윈도우 2배).
+      const grader = new Grader([note(60, 1000)], { speedModifier: 0.5 })
+
+      const result = grader.processNoteOn(60, 1100)
+      expect(result).not.toBeNull()
+      expect(result!.grade).toBe('perfect') // 100ms / 0.5 = Perfect 범위 (50/0.5=100ms)
+    })
+
+    it('0.5x에서 GOOD 범위도 확장된다', () => {
+      // 1.0x에서 400ms면 Error. 0.5x에서 400ms면 Good (GOOD_RANGE=300/0.5=600ms).
+      const grader = new Grader([note(60, 1000)], { speedModifier: 0.5 })
+
+      const result = grader.processNoteOn(60, 1400)
+      expect(result).not.toBeNull()
+      expect(result!.grade).toBe('good')
+    })
+
+    it('0.5x에서 확장된 GOOD 범위를 초과하면 매칭하지 않는다', () => {
+      // GOOD_RANGE/0.5 = 600ms. 700ms 차이면 매칭 안 됨.
+      const grader = new Grader([note(60, 1000)], { speedModifier: 0.5 })
+
+      const result = grader.processNoteOn(60, 1700)
+      expect(result).toBeNull()
+    })
+
+    it('0.5x에서 flush Miss 판정도 확장된 윈도우를 사용한다', () => {
+      const grader = new Grader([note(60, 1000)], { speedModifier: 0.5 })
+
+      // 1.0x라면 1400ms에 miss. 0.5x라면 GOOD_RANGE/0.5=600ms이므로 1400ms는 아직 안전.
+      const missesEarly = grader.flush(1400)
+      expect(missesEarly).toHaveLength(0)
+
+      // 1000 + 600 + 100 = 1700ms에서 miss
+      const missesLate = grader.flush(1700)
+      expect(missesLate).toHaveLength(1)
+      expect(missesLate[0].grade).toBe('miss')
+    })
+
+    it('speedModifier 미지정 시 기본값 1.0으로 동작한다', () => {
+      const grader = new Grader([note(60, 1000)])
+
+      const result = grader.processNoteOn(60, 1100)
+      expect(result!.grade).toBe('good') // 기존과 동일
+    })
+  })
+
   describe('적응형 오프셋', () => {
     it('점점 밀리는 연주에서 연쇄 Miss를 방지한다', () => {
       const grader = new Grader([
