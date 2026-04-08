@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FolderPicker from './components/FolderPicker'
 import SheetMusic from './components/SheetMusic'
 import type { SheetMusicHandle } from './components/SheetMusic'
@@ -41,13 +41,10 @@ function App() {
 
   const beatTimes = useMemo(() => getBeatTimes(songNotes), [songNotes])
 
-  const range: SectionRange | null = useMemo(() => {
-    if (startBeat === null && endBeat === null) return null
-    return {
-      startTime: startBeat !== null ? beatTimes[startBeat] : beatTimes[0],
-      endTime: endBeat !== null ? beatTimes[endBeat] : beatTimes[beatTimes.length - 1],
-    }
-  }, [startBeat, endBeat, beatTimes])
+  const range: SectionRange = useMemo(() => ({
+    startTime: startBeat !== null ? beatTimes[startBeat] : (beatTimes[0] ?? 0),
+    endTime: endBeat !== null ? beatTimes[endBeat] : (beatTimes[beatTimes.length - 1] ?? 0),
+  }), [startBeat, endBeat, beatTimes])
 
   const handleCursorAdvance = useCallback(() => {
     sheetMusicRef.current?.cursorNext()
@@ -71,12 +68,28 @@ function App() {
     onGradeResult: handleGradeResult,
   })
 
+  // 자동 반복: finished → 커서 복귀 + idle (색상 유지)
+  useEffect(() => {
+    if (state === 'finished') {
+      if (startBeat !== null) {
+        sheetMusicRef.current?.cursorSetTo(startBeat)
+      } else {
+        sheetMusicRef.current?.cursorReset()
+      }
+      stopSession()
+    }
+  }, [state, startBeat, stopSession])
+
   const handleMidiEvent = useCallback(
     (event: MidiNoteEvent) => {
       setLastNote(event)
+      // idle 상태에서 키 입력 시 이전 세션의 색상 리셋
+      if (state === 'idle' && songNotes.length > 0) {
+        sheetMusicRef.current?.resetColors()
+      }
       sessionHandleNote(event)
     },
-    [sessionHandleNote],
+    [sessionHandleNote, state, songNotes.length],
   )
 
   const { devices, selectedDeviceId, selectDevice, error, injectNoteEvent } =
@@ -233,7 +246,6 @@ function App() {
               <span className={styles.sessionState}>
                 {state === 'idle' && '대기 (아무 키나 누르면 시작)'}
                 {state === 'playing' && '연습 중...'}
-                {state === 'finished' && '완료!'}
               </span>
               <div className={styles.stats}>
                 <span className={styles.statPerfect}>
@@ -242,27 +254,22 @@ function App() {
                 <span className={styles.statGood}>Good: {stats.good}</span>
                 <span className={styles.statMiss}>Miss: {stats.miss}</span>
                 <span className={styles.statError}>Error: {stats.error}</span>
-              </div>
-              {state === 'finished' && sessionResult && (
-                <div className={styles.resultSummary}>
-                  <span>
-                    정확도: {Math.round(sessionResult.stats.accuracy * 100)}%
-                  </span>
-                  {Math.abs(sessionResult.drift) >= 10 && (
-                    <span className={styles.drift}>
-                      {sessionResult.drift > 0
-                        ? `+${Math.round(sessionResult.drift)}ms 늦음`
-                        : `${Math.round(sessionResult.drift)}ms 빠름`}
+                {sessionResult && (
+                  <>
+                    <span className={styles.separator}>|</span>
+                    <span>
+                      정확도: {Math.round(sessionResult.stats.accuracy * 100)}%
                     </span>
-                  )}
-                  <button
-                    onClick={handleRestart}
-                    className={styles.controlButton}
-                  >
-                    다시 연습
-                  </button>
-                </div>
-              )}
+                    {Math.abs(sessionResult.drift) >= 10 && (
+                      <span className={styles.drift}>
+                        {sessionResult.drift > 0
+                          ? `+${Math.round(sessionResult.drift)}ms 늦음`
+                          : `${Math.round(sessionResult.drift)}ms 빠름`}
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           )}
           <SheetMusic
@@ -270,32 +277,6 @@ function App() {
             musicXml={musicXml}
             onNotesReady={setSongNotes}
           />
-          {state === 'finished' && sessionResult && (
-            <div className={styles.bottomControls}>
-              <span className={styles.bottomAccuracy}>
-                정확도: {Math.round(sessionResult.stats.accuracy * 100)}%
-              </span>
-              {Math.abs(sessionResult.drift) >= 10 && (
-                <span className={styles.drift}>
-                  {sessionResult.drift > 0
-                    ? `+${Math.round(sessionResult.drift)}ms 늦음`
-                    : `${Math.round(sessionResult.drift)}ms 빠름`}
-                </span>
-              )}
-              <button
-                onClick={handleRestart}
-                className={styles.controlButton}
-              >
-                다시 연습
-              </button>
-              <button
-                onClick={() => sheetMusicRef.current?.scrollToTop()}
-                className={styles.controlButton}
-              >
-                맨 위로
-              </button>
-            </div>
-          )}
         </>
       )}
     </div>
