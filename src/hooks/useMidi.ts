@@ -118,6 +118,13 @@ export function useMidi(options: UseMidiOptions = {}) {
     }
   }, [refreshDevices])
 
+  // 디바이스 1개일 때 자동 연결
+  useEffect(() => {
+    if (devices.length === 1 && selectedDeviceId === null) {
+      selectDevice(devices[0].id)
+    }
+  }, [devices, selectedDeviceId, selectDevice])
+
   return {
     devices,
     selectedDeviceId,
