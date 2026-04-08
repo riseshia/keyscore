@@ -169,14 +169,17 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
       if (!cursor) return
 
       const savedBeat = beatIndexRef.current
+      const savedScroll = window.scrollY
+
+      // followCursor를 일시 비활성화하여 스크롤 방지
+      osmd.FollowCursor = false
 
       cursor.reset()
+      const containerRect = container.getBoundingClientRect()
       let beatIndex = 0
       while (!cursor.Iterator.EndReached) {
         const el = cursor.cursorElement
         if (el) {
-          // followCursor がスクロールを引き起こすため、毎回再取得する
-          const containerRect = container.getBoundingClientRect()
           const elRect = el.getBoundingClientRect()
           positions.push({
             beatIndex,
@@ -189,10 +192,12 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
       }
 
       // 커서 원래 위치로 복원
+      osmd.FollowCursor = true
       cursor.reset()
       for (let i = 0; i < savedBeat; i++) {
         cursor.next()
       }
+      window.scrollTo(0, savedScroll)
       cursor.show()
       beatIndexRef.current = savedBeat
 
