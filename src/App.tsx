@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FolderPicker from './components/FolderPicker'
 import SheetMusic from './components/SheetMusic'
 import type { SheetMusicHandle } from './components/SheetMusic'
@@ -71,12 +71,28 @@ function App() {
     onGradeResult: handleGradeResult,
   })
 
+  // 구간 연습 자동 반복: finished → 커서 복귀 + idle (색상 유지)
+  useEffect(() => {
+    if (state === 'finished' && range !== null) {
+      if (startBeat !== null) {
+        sheetMusicRef.current?.cursorSetTo(startBeat)
+      } else {
+        sheetMusicRef.current?.cursorReset()
+      }
+      stopSession()
+    }
+  }, [state, range, startBeat, stopSession])
+
   const handleMidiEvent = useCallback(
     (event: MidiNoteEvent) => {
       setLastNote(event)
+      // idle 상태에서 키 입력 시 이전 세션의 색상 리셋
+      if (state === 'idle' && songNotes.length > 0) {
+        sheetMusicRef.current?.resetColors()
+      }
       sessionHandleNote(event)
     },
-    [sessionHandleNote],
+    [sessionHandleNote, state, songNotes.length],
   )
 
   const { devices, selectedDeviceId, selectDevice, error, injectNoteEvent } =
