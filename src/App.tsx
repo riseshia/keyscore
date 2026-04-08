@@ -149,6 +149,7 @@ function App() {
       )}
       {musicXml && (
         <>
+          <div className={styles.stickyBar}>
           <div className={styles.controls}>
             <button
               onClick={() => {
@@ -277,6 +278,7 @@ function App() {
               </div>
             </div>
           )}
+          </div>
           <SheetMusic
             ref={sheetMusicRef}
             musicXml={musicXml}

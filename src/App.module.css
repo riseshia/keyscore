@@ -15,6 +15,14 @@
   font-weight: 600;
 }
 
+.stickyBar {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  border-bottom: 1px solid #eee;
+}
+
 .controls {
   display: flex;
   gap: 8px;
