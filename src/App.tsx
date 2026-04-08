@@ -68,6 +68,11 @@ function App() {
     onGradeResult: handleGradeResult,
   })
 
+  const handleBeatClick = useCallback((beatIndex: number) => {
+    if (state !== 'idle') return // 연주 중에는 무시
+    sheetMusicRef.current?.cursorSetTo(beatIndex)
+  }, [state])
+
   // 자동 반복: finished → 커서 복귀 + idle (색상 유지)
   useEffect(() => {
     if (state === 'finished') {
@@ -276,6 +281,7 @@ function App() {
             ref={sheetMusicRef}
             musicXml={musicXml}
             onNotesReady={setSongNotes}
+            onBeatClick={handleBeatClick}
           />
         </>
       )}
