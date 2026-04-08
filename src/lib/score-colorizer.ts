@@ -4,7 +4,7 @@ const GRADE_COLORS: Record<Grade, string> = {
   perfect: '#00cc00',
   good: '#cccc00',
   miss: '#cc0000',
-  error: '#cc0000',
+  error: '#999999',
 }
 
 const DEFAULT_COLOR = '#000000'
