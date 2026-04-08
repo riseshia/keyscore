@@ -168,7 +168,6 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
       const cursor = osmd.cursor
       if (!cursor) return
 
-      const containerRect = container.getBoundingClientRect()
       const savedBeat = beatIndexRef.current
 
       cursor.reset()
@@ -176,6 +175,8 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
       while (!cursor.Iterator.EndReached) {
         const el = cursor.cursorElement
         if (el) {
+          // followCursor がスクロールを引き起こすため、毎回再取得する
+          const containerRect = container.getBoundingClientRect()
           const elRect = el.getBoundingClientRect()
           positions.push({
             beatIndex,
