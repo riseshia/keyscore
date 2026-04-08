@@ -24,7 +24,7 @@ export interface SectionRange {
 
 interface UseSessionOptions {
   songNotes: SongNote[]
-  range?: SectionRange | null
+  range: SectionRange
   speedModifier?: number // 배속 (0.5~1.0, 기본값 1.0)
   onGradeResult?: (result: GradeResult) => void
   onCursorAdvance?: () => void
@@ -116,9 +116,6 @@ export function useSession({
   const getActiveNotes = useCallback((): { notes: SongNote[]; indexMap: number[] } => {
     const allNotes = songNotesRef.current
     const r = rangeRef.current
-    if (!r) {
-      return { notes: allNotes, indexMap: allNotes.map((_, i) => i) }
-    }
     const notes: SongNote[] = []
     const indexMap: number[] = []
     for (let i = 0; i < allNotes.length; i++) {
@@ -135,8 +132,7 @@ export function useSession({
     if (activeNotes.length === 0) return
 
     indexMapRef.current = indexMap
-    const r = rangeRef.current
-    timeOffsetRef.current = r ? r.startTime : 0
+    timeOffsetRef.current = rangeRef.current.startTime
 
     // Grader에 전달할 노트의 시간을 0 기준으로 정규화
     const speed = speedModifierRef.current
@@ -218,7 +214,6 @@ export function useSession({
       timerRef.current = null
     }
     graderRef.current = null
-    setSessionResult(null)
   }, [])
 
   const handleNoteEvent = useCallback(
