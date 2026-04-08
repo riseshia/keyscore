@@ -63,14 +63,18 @@ export default forwardRef<SheetMusicHandle, SheetMusicProps>(
         beatIndexRef.current = 0
       },
       cursorSetTo: (beatIndex: number) => {
-        const cursor = osmdRef.current?.cursor
-        if (!cursor) return
+        const osmd = osmdRef.current
+        const cursor = osmd?.cursor
+        if (!osmd || !cursor) return
+        // 스크롤 방지: 이동 중에는 followCursor 비활성화
+        osmd.FollowCursor = false
         cursor.reset()
         for (let i = 0; i < beatIndex; i++) {
           cursor.next()
         }
         cursor.show()
         beatIndexRef.current = beatIndex
+        osmd.FollowCursor = true
       },
       getBeatIndex: () => beatIndexRef.current,
       colorNote: (noteIndex: number, grade: Grade) => {
