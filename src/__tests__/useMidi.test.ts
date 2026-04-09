@@ -27,6 +27,25 @@ describe('useMidi', () => {
     })
   })
 
+  describe('unsupported browser', () => {
+    it('sets supported=false and descriptive error when requestMIDIAccess is unavailable', async () => {
+      Object.defineProperty(navigator, 'requestMIDIAccess', {
+        value: undefined,
+        writable: true,
+        configurable: true,
+      })
+
+      const { result } = renderHook(() => useMidi())
+
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 0))
+      })
+
+      expect(result.current.supported).toBe(false)
+      expect(result.current.error).toContain('MIDI를 지원하지 않아요')
+    })
+  })
+
   describe('auto-connect', () => {
     it('auto-selects when exactly one device is available', async () => {
       mockMidiAccess = createMockMidiAccess([{ id: 'dev1', name: 'My Piano' }])

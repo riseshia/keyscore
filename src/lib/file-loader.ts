@@ -43,6 +43,36 @@ export async function pickDirectory(): Promise<FileSystemDirectoryHandle> {
   return handle
 }
 
+export function supportsDirectoryPicker(): boolean {
+  return typeof window.showDirectoryPicker === 'function'
+}
+
+/** 파일 input으로 MusicXML 파일을 선택한다 (showDirectoryPicker 미지원 브라우저용) */
+export function pickFiles(): Promise<File[]> {
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.musicxml,.xml,.mxl'
+    input.multiple = true
+
+    input.addEventListener('change', () => {
+      const files = input.files
+      if (!files || files.length === 0) {
+        reject(new DOMException('No files selected', 'AbortError'))
+        return
+      }
+      resolve(Array.from(files))
+    })
+
+    // 취소 감지: focus 복귀 후 파일이 없으면 abort
+    input.addEventListener('cancel', () => {
+      reject(new DOMException('User cancelled', 'AbortError'))
+    })
+
+    input.click()
+  })
+}
+
 export async function listMusicXmlFiles(
   dirHandle: FileSystemDirectoryHandle,
 ): Promise<string[]> {

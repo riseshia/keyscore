@@ -14,6 +14,7 @@ export function useMidi(options: UseMidiOptions = {}) {
   const [devices, setDevices] = useState<MidiDevice[]>([])
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [supported, setSupported] = useState(true)
   const midiAccessRef = useRef<MIDIAccess | null>(null)
   const callbackRef = useRef(options.onNoteEvent)
 
@@ -88,7 +89,10 @@ export function useMidi(options: UseMidiOptions = {}) {
   // Web MIDI API 초기화
   useEffect(() => {
     if (typeof navigator === 'undefined' || !navigator.requestMIDIAccess) {
-      setError('Web MIDI API를 지원하지 않는 브라우저입니다')
+      setSupported(false)
+      setError(
+        '이 브라우저에서는 MIDI를 지원하지 않아요. 화면 키보드를 사용해주세요.',
+      )
       return
     }
 
@@ -130,6 +134,7 @@ export function useMidi(options: UseMidiOptions = {}) {
     selectedDeviceId,
     selectDevice,
     error,
+    supported,
     injectNoteEvent,
   }
 }

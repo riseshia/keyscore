@@ -15,7 +15,8 @@
   font-size: 14px;
 }
 
-.folderButton:hover {
+.folderButton:hover,
+.folderButton:active {
   background: #e8e8e8;
 }
 
@@ -52,7 +53,8 @@
   font-size: 14px;
 }
 
-.fileButton:hover {
+.fileButton:hover,
+.fileButton:active {
   background: #f0f0f0;
 }
 
