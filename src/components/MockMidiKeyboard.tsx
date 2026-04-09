@@ -122,7 +122,7 @@ export function MockMidiKeyboard({ onNoteEvent }: MockMidiKeyboardProps) {
   )
 
   const handleTouchEnd = useCallback(
-    (pitch: number, e: React.TouchEvent) => {
+    (_pitch: number, e: React.TouchEvent) => {
       e.preventDefault()
       for (let i = 0; i < e.changedTouches.length; i++) {
         const touch = e.changedTouches[i]
