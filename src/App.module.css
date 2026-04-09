@@ -38,7 +38,8 @@
   font-size: 14px;
 }
 
-.controlButton:hover:not(:disabled) {
+.controlButton:hover:not(:disabled),
+.controlButton:active:not(:disabled) {
   background: #f0f0f0;
 }
 
@@ -53,7 +54,8 @@
   border-color: #333;
 }
 
-.controlButtonActive:hover:not(:disabled) {
+.controlButtonActive:hover:not(:disabled),
+.controlButtonActive:active:not(:disabled) {
   background: #444;
 }
 

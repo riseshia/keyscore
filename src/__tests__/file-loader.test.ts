@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest'
-import { listMusicXmlFiles, readMusicXmlFile } from '../lib/file-loader'
+import { describe, expect, it, vi } from 'vitest'
+import {
+  listMusicXmlFiles,
+  readMusicXmlFile,
+  supportsDirectoryPicker,
+} from '../lib/file-loader'
 
 function createMockDirHandle(
   entries: { name: string; kind: 'file' | 'directory' }[],
@@ -60,5 +64,24 @@ describe('readMusicXmlFile', () => {
 
     const content = await readMusicXmlFile(handle, 'test.musicxml')
     expect(content).toBe('<score/>')
+  })
+})
+
+describe('supportsDirectoryPicker', () => {
+  it('showDirectoryPicker가 있으면 true를 반환한다', () => {
+    vi.stubGlobal(
+      'showDirectoryPicker',
+      vi.fn(() => Promise.resolve({})),
+    )
+    expect(supportsDirectoryPicker()).toBe(true)
+    vi.unstubAllGlobals()
+  })
+
+  it('showDirectoryPicker가 없으면 false를 반환한다', () => {
+    const orig = window.showDirectoryPicker
+    // @ts-expect-error - intentionally deleting for test
+    delete window.showDirectoryPicker
+    expect(supportsDirectoryPicker()).toBe(false)
+    if (orig) window.showDirectoryPicker = orig
   })
 })

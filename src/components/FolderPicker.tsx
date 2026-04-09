@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   pickDirectory,
+  pickFiles,
   loadDirectoryHandle,
   listMusicXmlFiles,
   readMusicXmlFile,
+  supportsDirectoryPicker,
 } from '../lib/file-loader'
 import styles from './FolderPicker.module.css'
 
@@ -18,8 +20,12 @@ export default function FolderPicker({ onLoad }: FolderPickerProps) {
   const [files, setFiles] = useState<string[]>([])
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const pickedFilesRef = useRef<Map<string, File>>(new Map())
+  const useDirectoryPicker = supportsDirectoryPicker()
 
   useEffect(() => {
+    if (!useDirectoryPicker) return
+
     loadDirectoryHandle().then(async (handle) => {
       if (!handle) return
 
@@ -30,7 +36,7 @@ export default function FolderPicker({ onLoad }: FolderPickerProps) {
       const musicFiles = await listMusicXmlFiles(handle)
       setFiles(musicFiles)
     })
-  }, [])
+  }, [useDirectoryPicker])
 
   async function handlePickFolder() {
     try {
@@ -46,13 +52,37 @@ export default function FolderPicker({ onLoad }: FolderPickerProps) {
     }
   }
 
+  async function handlePickFiles() {
+    try {
+      setError(null)
+      const picked = await pickFiles()
+      const fileMap = new Map<string, File>()
+      for (const f of picked) {
+        fileMap.set(f.name, f)
+      }
+      pickedFilesRef.current = fileMap
+      setFiles(Array.from(fileMap.keys()).sort())
+      setSelectedFile(null)
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return
+      setError('파일을 열 수 없습니다')
+    }
+  }
+
   async function handleSelectFile(fileName: string) {
-    if (!dirHandle) return
     try {
       setError(null)
       setSelectedFile(fileName)
-      const xml = await readMusicXmlFile(dirHandle, fileName)
-      onLoad(xml)
+
+      if (useDirectoryPicker && dirHandle) {
+        const xml = await readMusicXmlFile(dirHandle, fileName)
+        onLoad(xml)
+      } else {
+        const file = pickedFilesRef.current.get(fileName)
+        if (!file) throw new Error('File not found')
+        const xml = await file.text()
+        onLoad(xml)
+      }
     } catch {
       setError(`파일을 읽을 수 없습니다: ${fileName}`)
     }
@@ -60,9 +90,15 @@ export default function FolderPicker({ onLoad }: FolderPickerProps) {
 
   return (
     <div className={styles.picker}>
-      <button onClick={handlePickFolder} className={styles.folderButton}>
-        폴더 선택
-      </button>
+      {useDirectoryPicker ? (
+        <button onClick={handlePickFolder} className={styles.folderButton}>
+          폴더 선택
+        </button>
+      ) : (
+        <button onClick={handlePickFiles} className={styles.folderButton}>
+          파일 선택
+        </button>
+      )}
       {dirHandle && <span className={styles.folderName}>{dirHandle.name}</span>}
       {error && <p className={styles.error}>{error}</p>}
       {files.length > 0 && (
